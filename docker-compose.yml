@@ -1,0 +1,11 @@
+version: "3"
+services:
+  schedule-go-engine:
+    image: schedule_go_engine_image
+    build:
+        context: .
+        dockerfile: ./ScheduleGo.Engine/Dockerfile
+    volumes:
+        - "./ScheduleGo.Shared:/ScheduleGo.Shared"
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
