@@ -40,7 +40,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			if (Course.ClassroomTypeNeeded != Classroom.ClassroomType)
 				value += 50;
 
-			if (!-Classroom.IsAvailable(TimePeriod))
+			if (!Classroom.IsAvailable(TimePeriod))
 				value += 50;
 
 			return value;
