@@ -1,8 +1,9 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ScheduleGo.Engine.SwarmAlgorithms.PSO;
+using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities;
 
 namespace ScheduleGo.Engine.Workers
 {
@@ -14,11 +15,15 @@ namespace ScheduleGo.Engine.Workers
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			while (!stoppingToken.IsCancellationRequested)
-			{
-				_logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-				await Task.Delay(1000, stoppingToken);
-			}
+			// while (!stoppingToken.IsCancellationRequested)
+			// {
+			Swarm<PositionType, VelocityType> swarm = new Swarm<PositionType, VelocityType>(1000, 0.729, 1.49445);
+
+			swarm.Build(100, 3, 1.49445)
+				.OptimalFitnessRange(-2.999999999999999, 3.000000000000001);
+
+			swarm.Process();
+			// }
 		}
 	}
 }

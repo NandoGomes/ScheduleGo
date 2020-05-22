@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/ScheduleGo.Tests/bin/Debug/netcoreapp3.1/ScheduleGo.Tests.dll",
+            "program": "${workspaceFolder}/ScheduleGo.Engine/bin/Debug/netcoreapp3.1/ScheduleGo.Engine.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/ScheduleGo.Tests",
+            "cwd": "${workspaceFolder}/ScheduleGo.Engine",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false

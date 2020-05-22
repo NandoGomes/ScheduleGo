@@ -11,5 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ScheduleGo.Shared\ScheduleGo.Shared.csproj" />
+    <ProjectReference Include="..\ScheduleGo.Domain\ScheduleGo.Domain.csproj" />
   </ItemGroup>
 </Project>
