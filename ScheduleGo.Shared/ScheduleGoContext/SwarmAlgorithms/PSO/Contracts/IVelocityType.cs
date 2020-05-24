@@ -2,16 +2,21 @@ using System.Collections.Generic;
 
 namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts
 {
-	public interface IVelocityType
-	{
-		int Length { get; }
+    public interface IVelocityType
+    {
+        int Length { get; }
 
-		IVelocityType Build(int dimentions);
-		IVelocityType Clone();
+        IVelocityType Build(int dimentions, double[] minValues, double[] maxValues);
+        IVelocityType Clone();
 
-		void Update(int index, double value);
+        void Update(double weight,
+                    double particleWeight,
+                    double swarmWeight,
+                    IPositionType position,
+                    IPositionType bestPosition,
+                    IPositionType swarmBestPosition);
 
-		IVelocityTypeEntry this[int index] { get; }
-		IEnumerator<IVelocityTypeEntry> GetEnumerator();
-	}
+        IVelocityTypeEntry this[int index] { get; }
+        IEnumerator<IVelocityTypeEntry> GetEnumerator();
+    }
 }

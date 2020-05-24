@@ -2,38 +2,53 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using ScheduleGo.Domain.ScheduleGoContext.Entities;
 using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts;
 
 namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 {
-	public class PositionType : IPositionType
-	{
-		private IPositionTypeEntry[] _values;
+    public class PositionType : IPositionType
+    {
+        private IPositionTypeEntry[] _schedules;
 
-		public IPositionTypeEntry this[int index] => _values[index];
+        public IPositionTypeEntry this[int index] => _schedules[index];
 
-		public int Length => _values.Length;
+        public int Length => _schedules.Length;
 
-		public IPositionType Build(int dimentions)
-		{
-			Random random = new Random();
-			_values = new PositionTypeEntry[dimentions];
+        public IPositionType Build(int dimentions, params object[] args)
+        {
+            IEnumerable<Teacher> teachers = args[0] as IEnumerable<Teacher>;
+            IEnumerable<Course> courses = args[1] as IEnumerable<Course>;
+            IEnumerable<TimePeriod> timePeriods = args[2] as IEnumerable<TimePeriod>;
+            IEnumerable<Classroom> classrooms = args[3] as IEnumerable<Classroom>;
 
-			for (int index = 0; index < dimentions; index++)
-				_values[index] = (PositionTypeEntry)(20000.0 * random.NextDouble() - 10000.0);
+            List<IPositionTypeEntry> schedules = new List<IPositionTypeEntry>(dimentions);
 
-			return this;
-		}
+            foreach (Teacher teacher in teachers)
+                foreach (TimePeriod timePeriod in timePeriods)
+                    schedules.Add(new PositionTypeEntry(courses, classrooms).Initialize(teacher, timePeriod));
 
-		public double CalculateFitness() => 3.0 + this[0] * this[0] + this[1] * this[1] + this[2] * this[2];
+            _schedules = schedules.ToArray();
 
-		public IPositionType Clone() => new PositionType { _values = _values.Select(entry => ((PositionTypeEntry)entry).Clone()).ToArray() };
+            return this;
+        }
 
-		public IEnumerator<IPositionTypeEntry> GetEnumerator() => _values.GetEnumerator() as IEnumerator<IPositionTypeEntry>;
+        public double CalculateFitness()
+        {
+            double fitness = 0;
+
+            fitness = _schedules.Sum(schedule => schedule.ToDouble());
+
+            return fitness;
+        }
+
+        public IPositionType Clone() => new PositionType { _schedules = _schedules.Select(entry => entry.Clone()).ToArray() };
+
+        public IEnumerator<IPositionTypeEntry> GetEnumerator() => _schedules.GetEnumerator() as IEnumerator<IPositionTypeEntry>;
 
 
-		public void Update(int index, double value) => _values[index] = (PositionTypeEntry)value;
+        public void Update(int index, IVelocityTypeEntry velocity) => _schedules[index].Update(velocity);
 
-		public override string ToString() => JsonSerializer.Serialize(_values);
-	}
+        public override string ToString() => JsonSerializer.Serialize(_schedules);
+    }
 }

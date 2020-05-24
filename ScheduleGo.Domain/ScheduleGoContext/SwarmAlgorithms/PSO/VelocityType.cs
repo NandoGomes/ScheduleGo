@@ -6,32 +6,44 @@ using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts;
 
 namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 {
-	public class VelocityType : IVelocityType
-	{
-		private IVelocityTypeEntry[] _values;
+    public class VelocityType : IVelocityType
+    {
+        private IVelocityTypeEntry[] _values;
 
-		public IVelocityTypeEntry this[int index] => _values[index];
+        public IVelocityTypeEntry this[int index] => _values[index];
 
-		public int Length => _values.Length;
+        public int Length => _values.Length;
 
-		public IVelocityType Build(int dimentions)
-		{
-			Random random = new Random();
-			_values = new VelocityTypeEntry[dimentions];
+        public IVelocityType Build(int dimentions, double[] minValues, double[] maxValues)
+        {
+            _values = new VelocityTypeEntry[dimentions];
 
-			double absolute = Math.Abs(20000.0);
+            for (int index = 0; index < dimentions; index++)
+                _values[index] = new VelocityTypeEntry().Initialize(minValues, maxValues);
 
-			for (int index = 0; index < dimentions; index++)
-				_values[index] = (VelocityTypeEntry)((absolute * 2) * random.NextDouble() - absolute);
+            return this;
+        }
 
-			return this;
-		}
+        public IVelocityType Clone() => new VelocityType { _values = _values.Select(entry => entry.Clone()).ToArray() };
 
-		public IVelocityType Clone() => new VelocityType { _values = _values.Select(entry => ((VelocityTypeEntry)entry).Clone()).ToArray() };
+        public IEnumerator<IVelocityTypeEntry> GetEnumerator() => _values.GetEnumerator() as IEnumerator<IVelocityTypeEntry>;
 
-		public IEnumerator<IVelocityTypeEntry> GetEnumerator() => _values.GetEnumerator() as IEnumerator<IVelocityTypeEntry>;
+        public void Update(double weight,
+                           double particleWeight,
+                           double swarmWeight,
+                           IPositionType position,
+                           IPositionType bestPosition,
+                           IPositionType swarmBestPosition)
+        {
+            for (int index = 0; index < _values.Length; index++)
+                _values[index].Update(weight,
+                                      particleWeight,
+                                      swarmWeight,
+                                      position[index],
+                                      bestPosition[index],
+                                      swarmBestPosition[index]);
+        }
 
-		public void Update(int index, double value) => _values[index] = (VelocityTypeEntry)value;
-		public override string ToString() => JsonSerializer.Serialize(_values);
-	}
+        public override string ToString() => JsonSerializer.Serialize(_values);
+    }
 }

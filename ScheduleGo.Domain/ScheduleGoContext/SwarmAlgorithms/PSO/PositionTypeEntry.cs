@@ -1,59 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using ScheduleGo.Domain.ScheduleGoContext.Entities;
+using ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO.Enums;
 using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts;
 
 namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 {
-	public class PositionTypeEntry : IPositionTypeEntry
-	{
-		public Teacher Teacher { get; private set; }
-		public Course Course { get; private set; }
-		public TimePeriod TimePeriod { get; private set; }
-		public Classroom Classroom { get; private set; }
+    public class PositionTypeEntry : IPositionTypeEntry
+    {
+        private readonly IEnumerable<Course> _courses;
+        private readonly IEnumerable<Classroom> _classrooms;
 
-		public void Initialize()
-		{
+        public PositionTypeEntry(IEnumerable<Course> courses,
+                                 IEnumerable<Classroom> classrooms)
+        {
+            _courses = courses;
+            _classrooms = classrooms;
+        }
 
-		}
+        public Teacher Teacher { get; private set; }
+        public TimePeriod TimePeriod { get; private set; }
+        public Course Course { get; private set; }
+        public Classroom Classroom { get; private set; }
+        public int CourseId { get; private set; }
+        public int ClassroomId { get; private set; }
 
-		public double ToDouble()
-		{
-			double value = 0;
+        public IPositionTypeEntry Initialize(params object[] args)
+        {
+            Teacher = args[0] as Teacher;
+            TimePeriod = args[1] as TimePeriod;
 
-			if (!Teacher.IsQualified(Course))
-				value += 50;
+            Random random = new Random();
 
-			if (Teacher.Prefers(Course))
-				value -= 25;
+            CourseId = random.Next(_courses.Count());
+            ClassroomId = random.Next(_classrooms.Count());
 
-			if (!Teacher.IsAvailable(TimePeriod))
-				value += 50;
+            Course = _courses.ElementAt(CourseId);
+            Classroom = _classrooms.ElementAt(ClassroomId);
 
-			if (Teacher.Prefers(TimePeriod))
-				value -= 25;
+            return this;
+        }
 
-			if (!Course.IsAvailable(TimePeriod))
-				value += 50;
+        public double ToDouble()
+        {
+            double value = 0;
 
-			if (Course.StudentsCount > Classroom.Capacity)
-				value += 50;
+            if (!Teacher.IsQualified(Course))
+                value += (double)EValidationCosts.MediumPenalty;
 
-			if (Course.ClassroomTypeNeeded != Classroom.ClassroomType)
-				value += 50;
+            if (Teacher.Prefers(Course))
+                value += (double)EValidationCosts.SmallBonus;
 
-			if (!Classroom.IsAvailable(TimePeriod))
-				value += 50;
+            if (!Teacher.IsAvailable(TimePeriod))
+                value += (double)EValidationCosts.GravePenalty;
 
-			return value;
-		}
+            if (Teacher.Prefers(TimePeriod))
+                value += (double)EValidationCosts.MediumBonus;
 
-		public PositionTypeEntry Clone() => new PositionTypeEntry
-		{
-			Teacher = Teacher,
-			TimePeriod = TimePeriod,
-			Classroom = Classroom,
-			Course = Course
-		};
+            if (!Course.IsAvailable(TimePeriod))
+                value += (double)EValidationCosts.GravePenalty;
 
-		public static implicit operator double(PositionTypeEntry entry) => entry.ToDouble();
-	}
+            if (Course.StudentsCount > Classroom.Capacity)
+                value += (double)EValidationCosts.GravePenalty;
+
+            if (Course.ClassroomTypeNeeded != Classroom.ClassroomType)
+                value += (double)EValidationCosts.GravePenalty;
+
+            if (!Classroom.IsAvailable(TimePeriod))
+                value += (double)EValidationCosts.GravePenalty;
+
+            return value;
+        }
+
+        public IPositionTypeEntry Clone() => new PositionTypeEntry(_courses, _classrooms)
+        {
+            Teacher = Teacher,
+            Course = Course,
+            TimePeriod = TimePeriod,
+            Classroom = Classroom
+        };
+
+        public void Update(IVelocityTypeEntry velocity)
+        {
+            CourseId += (velocity as VelocityTypeEntry).CourseVelocity;
+            ClassroomId += (velocity as VelocityTypeEntry).ClassroomVelocity;
+
+            Course = _courses.ElementAt(CourseId);
+            Classroom = _classrooms.ElementAt(ClassroomId);
+        }
+    }
 }
