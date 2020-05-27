@@ -1,7 +1,11 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ScheduleGo.Domain.ScheduleGoContext.Repositories;
 using ScheduleGo.Engine.Workers;
+using ScheduleGo.Infra.ScheduleGoContext.DataContexts;
+using ScheduleGo.Infra.ScheduleGoContext.Repositories;
 
 namespace ScheduleGo.Engine
 {
@@ -16,6 +20,13 @@ namespace ScheduleGo.Engine
 																 .AddEnvironmentVariables())
 				.ConfigureServices((hostContext, services) =>
 				{
+					services.AddDbContext<ScheduleGoDataContext>(options => options.UseLazyLoadingProxies().UseSqlServer(hostContext.Configuration["ConnectionString"], builder => builder.MigrationsAssembly(typeof(Program).Assembly.FullName)));
+
+					services.AddSingleton<ITeacherRepository, TeacherRepository>();
+					services.AddSingleton<ICourseRepository, CourseRepository>();
+					services.AddSingleton<ITimePeriodRepository, TimePeriodRepository>();
+					services.AddSingleton<IClassroomRepository, ClassroomRepository>();
+
 					services.AddHostedService<EngineWorker>();
 				});
 	}
