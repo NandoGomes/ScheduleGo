@@ -64,7 +64,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			if (Course.StudentsCount > Classroom.Capacity)
 				value += (double)EValidationCosts.GravePenalty;
 
-			if (!Classroom.ClassroomType.Equals(Course.ClassroomTypeNeeded))
+			if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
 				value += (double)EValidationCosts.GravePenalty;
 
 			if (!Classroom.IsAvailable(TimePeriod))

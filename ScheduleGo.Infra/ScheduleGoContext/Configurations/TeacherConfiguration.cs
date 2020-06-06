@@ -14,25 +14,10 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 
 			builder.Property(teacher => teacher.Name).IsRequired();
 
-			builder.HasMany(teacher => teacher.PreferredCourses)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
-
-			builder.HasMany(teacher => teacher.QualifiedCourses)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
-
-			builder.HasMany(teacher => teacher.PreferredPeriods)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
-
-			builder.HasMany(teacher => teacher.AvailablePeriods)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
+			builder.Ignore(teacher => teacher.PreferredCourses);
+			builder.Ignore(teacher => teacher.QualifiedCourses);
+			builder.Ignore(teacher => teacher.PreferredPeriods);
+			builder.Ignore(teacher => teacher.AvailablePeriods);
 		}
 	}
 }

@@ -15,21 +15,16 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 			builder.Property(course => course.Name).IsRequired();
 			builder.Property(course => course.Description).IsRequired();
 			builder.Property(course => course.StudentsCount).IsRequired();
+			builder.Property(course => course.NeededClassroomTypeId).IsRequired();
 			builder.Property(course => course.WeeklyWorkload).IsRequired();
 
-			builder.HasOne(course => course.ClassroomTypeNeeded)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
+			builder.HasOne(course => course.NeededClassroomType)
+				.WithMany()
+				.OnDelete(DeleteBehavior.NoAction)
 				.IsRequired();
 
-			builder.HasMany(course => course.CategoryTags)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade);
-
-			builder.HasMany(course => course.AvailablePeriods)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
+			builder.Ignore(course => course.CategoryTags);
+			builder.Ignore(course => course.AvailablePeriods);
 		}
 	}
 }

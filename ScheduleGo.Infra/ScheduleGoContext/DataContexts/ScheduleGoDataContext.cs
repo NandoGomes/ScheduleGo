@@ -28,10 +28,8 @@ namespace ScheduleGo.Infra.ScheduleGoContext.DataContexts
 			modelBuilder.ApplyConfiguration(new TeacherConfiguration());
 			modelBuilder.ApplyConfiguration(new TimePeriodConfiguration());
 
-			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<ClassroomClassroomType, Classroom, ClassroomType>());
 			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<ClassroomTag, Classroom, Tag>());
 			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<ClassroomTimePeriod, Classroom, TimePeriod>());
-			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<CourseClassroomType, Course, ClassroomType>());
 			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<CourseTag, Course, Tag>());
 			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<CourseTimePeriod, Course, TimePeriod>());
 			modelBuilder.ApplyConfiguration(new LinkEntityConfiguration<TeacherAvailablePeriod, Teacher, TimePeriod>());

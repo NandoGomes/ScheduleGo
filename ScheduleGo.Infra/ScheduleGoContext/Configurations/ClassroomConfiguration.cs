@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScheduleGo.Domain.ScheduleGoContext.Entities;
-using ScheduleGo.Domain.ScheduleGoContext.Entities.Links;
 
 namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 {
@@ -15,20 +14,15 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 
 			builder.Property(classroom => classroom.Description).IsRequired();
 			builder.Property(classroom => classroom.Capacity).IsRequired();
+			builder.Property(classroom => classroom.ClassroomTypeId).IsRequired();
 
 			builder.HasOne(classroom => classroom.ClassroomType)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
+				.WithMany()
+				.OnDelete(DeleteBehavior.NoAction)
 				.IsRequired();
 
-			builder.HasMany(classroom => classroom.CategoryTags)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade);
-
-			builder.HasMany(classroom => classroom.AvailablePeriods)
-				.WithOne(link => link.Left)
-				.OnDelete(DeleteBehavior.ClientCascade)
-				.IsRequired();
+			builder.Ignore(classroom => classroom.CategoryTags);
+			builder.Ignore(classroom => classroom.AvailablePeriods);
 		}
 	}
 }

@@ -11,8 +11,11 @@ namespace ScheduleGo.Domain.ScheduleGoContext.Entities
 		public string Name { get; private set; }
 		public string Description { get; private set; }
 		public int StudentsCount { get; private set; }
-		public virtual CourseClassroomType ClassroomTypeNeeded { get; private set; }
+		public Guid NeededClassroomTypeId { get; private set; }
 		public TimeSpan WeeklyWorkload { get; private set; }
+
+
+		public virtual ClassroomType NeededClassroomType { get; private set; }
 		public virtual IEnumerable<CourseTag> CategoryTags { get; private set; }
 		public virtual IEnumerable<CourseTimePeriod> AvailablePeriods { get; private set; }
 

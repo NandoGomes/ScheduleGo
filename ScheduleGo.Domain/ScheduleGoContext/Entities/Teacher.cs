@@ -8,6 +8,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.Entities
 	public class Teacher : Entity
 	{
 		public string Name { get; private set; }
+
 		public virtual IEnumerable<TeacherPreferredCourse> PreferredCourses { get; private set; }
 		public virtual IEnumerable<TeacherQualifiedCourse> QualifiedCourses { get; private set; }
 		public virtual IEnumerable<TeacherPreferredPeriod> PreferredPeriods { get; private set; }
