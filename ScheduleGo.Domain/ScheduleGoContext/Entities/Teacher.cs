@@ -14,10 +14,10 @@ namespace ScheduleGo.Domain.ScheduleGoContext.Entities
 		public virtual IEnumerable<TeacherPreferredPeriod> PreferredPeriods { get; private set; }
 		public virtual IEnumerable<TeacherAvailablePeriod> AvailablePeriods { get; private set; }
 
-		public bool IsQualified(Course course) => QualifiedCourses.Where(qualifiedCourse => (Course)qualifiedCourse == course).Any();
-		public bool Prefers(Course course) => PreferredCourses.Where(preferredCourse => (Course)preferredCourse == course).Any();
+		public bool IsQualified(Course course) => QualifiedCourses?.Where(qualifiedCourse => (Course)qualifiedCourse == course).Any() ?? false;
+		public bool Prefers(Course course) => PreferredCourses?.Where(preferredCourse => (Course)preferredCourse == course).Any() ?? false;
 
-		public bool IsAvailable(TimePeriod timePeriod) => AvailablePeriods.Where(availablePeriod => (TimePeriod)availablePeriod == timePeriod).Any();
-		public bool Prefers(TimePeriod timePeriod) => PreferredPeriods.Where(preferredPeriod => (TimePeriod)preferredPeriod == timePeriod).Any();
+		public bool IsAvailable(TimePeriod timePeriod) => AvailablePeriods?.Where(availablePeriod => (TimePeriod)availablePeriod == timePeriod).Any() ?? false;
+		public bool Prefers(TimePeriod timePeriod) => PreferredPeriods?.Where(preferredPeriod => (TimePeriod)preferredPeriod == timePeriod).Any() ?? false;
 	}
 }

@@ -6,104 +6,117 @@ using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.ValueObjects;
 
 namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 {
-    public class Swarm<TPositionType, TVelocityType> : IList<Particle<TPositionType, TVelocityType>> where TPositionType : class, IPositionType, new() where TVelocityType : class, IVelocityType, new()
-    {
-        private List<Particle<TPositionType, TVelocityType>> _particles;
-        private double[] _optimalFitnessRange = new double[] { 0, 0 };
+	public class Swarm<TPositionType, TVelocityType> : IList<Particle<TPositionType, TVelocityType>> where TPositionType : class, IPositionType, new() where TVelocityType : class, IVelocityType, new()
+	{
+		private List<Particle<TPositionType, TVelocityType>> _particles;
+		private double[] _optimalFitnessRange = new double[] { 0, 0 };
 
-        public Swarm(int lifetime,
-               double weight,
-               double globalWeight)
-        {
-            Lifetime = lifetime;
-            Weight = weight;
-            GlobalWeight = globalWeight;
+		public Swarm(int lifetime,
+			   double weight,
+			   double globalWeight)
+		{
+			Lifetime = lifetime;
+			Weight = weight;
+			GlobalWeight = globalWeight;
 
-            BestPosition = null;
-        }
+			BestPosition = null;
+		}
 
-        public ParticlePosition<TPositionType> BestPosition { get; private set; }
-        public int Lifetime { get; private set; }
-        public double Weight { get; private set; }
-        public double GlobalWeight { get; private set; }
-        public int Iterations { get; private set; }
+		public ParticlePosition<TPositionType> BestPosition { get; private set; }
+		public int Lifetime { get; private set; }
+		public double Weight { get; private set; }
+		public double GlobalWeight { get; private set; }
+		public int Iterations { get; private set; }
+		public object[] PositionArguments { get; private set; }
+		public object[] VelocityArguments { get; private set; }
 
-        public Swarm<TPositionType, TVelocityType> OptimalFitnessRange(double start, double end)
-        {
-            _optimalFitnessRange = new double[] { start, end };
+		public Swarm<TPositionType, TVelocityType> OptimalFitnessRange(double start, double end)
+		{
+			_optimalFitnessRange = new double[] { start, end };
 
-            return this;
-        }
+			return this;
+		}
 
-        public Swarm<TPositionType, TVelocityType> Build(int size,
-                                                   int dimentions,
-                                                   double particleWeight,
-                                                   double[] velocityMinValues,
-                                                   double[] velocityMaxValues,
-                                                   params object[] args)
-        {
-            _particles = new List<Particle<TPositionType, TVelocityType>>(size);
+		public Swarm<TPositionType, TVelocityType> SetPositionArguments(params object[] arguments)
+		{
+			PositionArguments = arguments;
 
-            for (int index = 0; index < size; index++)
-            {
-                _particles.Add(new Particle<TPositionType, TVelocityType>(dimentions,
-                                                                          particleWeight,
-                                                                          velocityMinValues,
-                                                                          velocityMaxValues,
-                                                                          args));
-                UpdateBestPosition(_particles[index].Position);
-            }
+			return this;
+		}
 
-            return this;
-        }
+		public Swarm<TPositionType, TVelocityType> SetVelocityArguments(params object[] arguments)
+		{
+			VelocityArguments = arguments;
 
-        public Swarm<TPositionType, TVelocityType> Process()
-        {
-            int iterationCounter = 0;
+			return this;
+		}
 
-            for (iterationCounter = 0; iterationCounter < Lifetime && !OptimalFitnessFound; iterationCounter++)
-                for (int index = 0; index < _particles.Count && !OptimalFitnessFound; index++)
-                    _particles[index].Run(this);
+		public Swarm<TPositionType, TVelocityType> Build(int size,
+												   int dimentions,
+												   double particleWeight)
+		{
+			_particles = new List<Particle<TPositionType, TVelocityType>>(size);
 
-            Iterations = iterationCounter;
+			for (int index = 0; index < size; index++)
+			{
+				_particles.Add(new Particle<TPositionType, TVelocityType>(dimentions,
+																		  particleWeight,
+																		  PositionArguments,
+																		  VelocityArguments));
 
-            return this;
-        }
+				UpdateBestPosition(_particles[index].Position);
+			}
 
-        public bool OptimalFitnessFound { get => BestPosition.Fitness > _optimalFitnessRange[0] && BestPosition.Fitness < _optimalFitnessRange[1]; }
+			return this;
+		}
 
-        public void UpdateBestPosition(ParticlePosition<TPositionType> particlePosition)
-        {
-            if (BestPosition == null || particlePosition.Fitness < BestPosition.Fitness)
-                BestPosition = particlePosition.Clone();
-        }
+		public Swarm<TPositionType, TVelocityType> Process()
+		{
+			int iterationCounter = 0;
 
-        public Particle<TPositionType, TVelocityType> this[int index] { get => _particles[index]; set => _particles[index] = value; }
+			for (iterationCounter = 0; iterationCounter < Lifetime && !OptimalFitnessFound; iterationCounter++)
+				for (int index = 0; index < _particles.Count && !OptimalFitnessFound; index++)
+					_particles[index].Run(this);
 
-        public int Count => _particles.Count;
+			Iterations = iterationCounter;
 
-        public bool IsReadOnly => true;
+			return this;
+		}
 
-        public void Add(Particle<TPositionType, TVelocityType> item) => _particles.Add(item);
+		public bool OptimalFitnessFound { get => BestPosition.Fitness > _optimalFitnessRange[0] && BestPosition.Fitness < _optimalFitnessRange[1]; }
 
-        public void Clear() => _particles.Clear();
+		public void UpdateBestPosition(ParticlePosition<TPositionType> particlePosition)
+		{
+			if (BestPosition == null || particlePosition.Fitness < BestPosition.Fitness)
+				BestPosition = particlePosition.Clone();
+		}
 
-        public bool Contains(Particle<TPositionType, TVelocityType> item) => _particles.Contains(item);
+		public Particle<TPositionType, TVelocityType> this[int index] { get => _particles[index]; set => _particles[index] = value; }
 
-        public void CopyTo(Particle<TPositionType, TVelocityType>[] array, int arrayIndex) => _particles.CopyTo(array, arrayIndex);
+		public int Count => _particles.Count;
 
-        public IEnumerator<Particle<TPositionType, TVelocityType>> GetEnumerator() => _particles.GetEnumerator();
+		public bool IsReadOnly => true;
 
-        public int IndexOf(Particle<TPositionType, TVelocityType> item) => _particles.IndexOf(item);
+		public void Add(Particle<TPositionType, TVelocityType> item) => _particles.Add(item);
 
-        public void Insert(int index, Particle<TPositionType, TVelocityType> item) => _particles.Insert(index, item);
+		public void Clear() => _particles.Clear();
 
-        public bool Remove(Particle<TPositionType, TVelocityType> item) => _particles.Remove(item);
+		public bool Contains(Particle<TPositionType, TVelocityType> item) => _particles.Contains(item);
 
-        public void RemoveAt(int index) => _particles.RemoveAt(index);
+		public void CopyTo(Particle<TPositionType, TVelocityType>[] array, int arrayIndex) => _particles.CopyTo(array, arrayIndex);
 
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+		public IEnumerator<Particle<TPositionType, TVelocityType>> GetEnumerator() => _particles.GetEnumerator();
 
-        public static explicit operator ReadOnlyCollection<Particle<TPositionType, TVelocityType>>(Swarm<TPositionType, TVelocityType> swarm) => swarm._particles.AsReadOnly();
-    }
+		public int IndexOf(Particle<TPositionType, TVelocityType> item) => _particles.IndexOf(item);
+
+		public void Insert(int index, Particle<TPositionType, TVelocityType> item) => _particles.Insert(index, item);
+
+		public bool Remove(Particle<TPositionType, TVelocityType> item) => _particles.Remove(item);
+
+		public void RemoveAt(int index) => _particles.RemoveAt(index);
+
+		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+		public static explicit operator ReadOnlyCollection<Particle<TPositionType, TVelocityType>>(Swarm<TPositionType, TVelocityType> swarm) => swarm._particles.AsReadOnly();
+	}
 }

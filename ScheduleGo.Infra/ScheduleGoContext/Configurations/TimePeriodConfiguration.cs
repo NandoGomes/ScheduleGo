@@ -15,6 +15,7 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 			builder.Property(timePeriod => timePeriod.Description).IsRequired();
 			builder.Property(timePeriod => timePeriod.Start).IsRequired();
 			builder.Property(timePeriod => timePeriod.End).IsRequired();
+			builder.Property(timePeriod => timePeriod.WeekDay).IsRequired();
 		}
 	}
 }

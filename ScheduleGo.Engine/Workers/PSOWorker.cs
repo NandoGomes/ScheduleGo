@@ -35,30 +35,33 @@ namespace ScheduleGo.Engine.Workers
 
 		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			// while (!stoppingToken.IsCancellationRequested)
-			// {
-			Swarm<PositionType, VelocityType> swarm = new Swarm<PositionType, VelocityType>(1000, 0.729, 1.49445);
+			while (!stoppingToken.IsCancellationRequested)
+			{
+				Swarm<PositionType, VelocityType> swarm = new Swarm<PositionType, VelocityType>(1000, 0.729, 1.49445);
 
-			IEnumerable<Teacher> teachers = _teacherRepository.GetAll();
-			IEnumerable<Course> courses = _courseRepository.GetAll();
-			IEnumerable<TimePeriod> timePeriods = _timePeriodRepository.GetAll();
-			IEnumerable<Classroom> classrooms = _classroomRepository.GetAll();
+				List<Teacher> teachers = _teacherRepository.GetAll().ToList();
+				List<Course> courses = _courseRepository.GetAll().ToList();
+				List<TimePeriod> timePeriods = _timePeriodRepository.GetAll().ToList();
+				List<Classroom> classrooms = _classroomRepository.GetAll().ToList();
 
-			double[] velocityMinValues = new double[] { 0, 0 };
-			double[] velocityMaxValues = new double[] { courses.Count(), classrooms.Count() };
+				double[] velocityMinValues = new double[] { -1, -1 };
+				double[] velocityMaxValues = new double[] { courses.Count - 1, classrooms.Count - 1 };
 
-			swarm.Build(100,
-						3,
-						1.49445,
-						velocityMinValues,
-						velocityMaxValues,
-						teachers,
-						courses,
-						timePeriods,
-						classrooms);
+				swarm.SetPositionArguments(teachers,
+							   courses,
+							   timePeriods,
+							   classrooms,
+							   3);
 
-			swarm.Process();
-			// }
+				swarm.SetVelocityArguments(velocityMinValues,
+							   velocityMaxValues);
+
+				swarm.Build(100,
+							teachers.Count * timePeriods.Count,
+							1.49445);
+
+				swarm.Process();
+			}
 		}
 	}
 }

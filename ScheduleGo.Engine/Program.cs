@@ -20,8 +20,10 @@ namespace ScheduleGo.Engine
 																 .AddEnvironmentVariables())
 				.ConfigureServices((hostContext, services) =>
 				{
-					DbContextOptions<ScheduleGoDataContext> dbContextOptions = new DbContextOptionsBuilder<ScheduleGoDataContext>().UseLazyLoadingProxies().UseSqlServer(hostContext.Configuration["ConnectionString"], builder => builder.MigrationsAssembly(typeof(Program).Assembly.FullName)).Options;
-					services.AddSingleton<ScheduleGoDataContext>(factory => new ScheduleGoDataContext(dbContextOptions));
+					// DbContextOptions<ScheduleGoDataContext> dbContextOptions = new DbContextOptionsBuilder<ScheduleGoDataContext>().UseLazyLoadingProxies().UseSqlServer(hostContext.Configuration["ConnectionString"], builder => builder.MigrationsAssembly(typeof(Program).Assembly.FullName)).Options;
+					// services.AddSingleton<ScheduleGoDataContext>(factory => new ScheduleGoDataContext(dbContextOptions));
+
+					services.AddDbContext<ScheduleGoDataContext>(options => options.UseLazyLoadingProxies().UseSqlServer(hostContext.Configuration["ConnectionString"], builder => builder.MigrationsAssembly(typeof(Program).Assembly.FullName)));
 
 					services.AddSingleton<ITeacherRepository, TeacherRepository>();
 					services.AddSingleton<ICourseRepository, CourseRepository>();

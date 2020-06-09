@@ -19,6 +19,6 @@ namespace ScheduleGo.Domain.ScheduleGoContext.Entities
 		public virtual IEnumerable<CourseTag> CategoryTags { get; private set; }
 		public virtual IEnumerable<CourseTimePeriod> AvailablePeriods { get; private set; }
 
-		public bool IsAvailable(TimePeriod timePeriod) => AvailablePeriods.Where(availablePeriod => (TimePeriod)availablePeriod == timePeriod).Any();
+		public bool IsAvailable(TimePeriod timePeriod) => AvailablePeriods?.Where(availablePeriod => (TimePeriod)availablePeriod == timePeriod).Any() ?? false;
 	}
 }
