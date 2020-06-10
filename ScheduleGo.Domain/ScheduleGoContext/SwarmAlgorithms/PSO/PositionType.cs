@@ -11,10 +11,15 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 	public class PositionType : IPositionType
 	{
 		private IPositionTypeEntry[] _schedules;
+
+		private List<Teacher> _teachers;
+		private List<Course> _courses;
+		private List<TimePeriod> _timePeriods;
+		private List<Classroom> _classrooms;
+
 		private int _teacherMaxAssignedCourses;
 
 		public IPositionTypeEntry this[int index] => _schedules[index];
-		public IPositionTypeEntry[] Schedule => _schedules.Where(entry => (entry as PositionTypeEntry).Course != null && (entry as PositionTypeEntry).Classroom != null).ToArray();
 
 		public int Length => _schedules.Length;
 
@@ -22,16 +27,16 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			_teacherMaxAssignedCourses = (int)arguments[4];
 
-			List<Teacher> teachers = arguments[0] as List<Teacher>;
-			List<Course> courses = arguments[1] as List<Course>;
-			List<TimePeriod> timePeriods = arguments[2] as List<TimePeriod>;
-			List<Classroom> classrooms = arguments[3] as List<Classroom>;
+			_teachers = arguments[0] as List<Teacher>;
+			_courses = arguments[1] as List<Course>;
+			_timePeriods = arguments[2] as List<TimePeriod>;
+			_classrooms = arguments[3] as List<Classroom>;
 
 			List<IPositionTypeEntry> schedules = new List<IPositionTypeEntry>(dimentions);
 
-			foreach (Teacher teacher in teachers)
-				foreach (TimePeriod timePeriod in timePeriods)
-					schedules.Add(new PositionTypeEntry(timePeriod.WeekDay, courses, classrooms).Initialize(teacher, timePeriod));
+			foreach (Teacher teacher in _teachers)
+				foreach (TimePeriod timePeriod in _timePeriods)
+					schedules.Add(new PositionTypeEntry(timePeriod.WeekDay, _courses, _classrooms).Initialize(teacher, timePeriod));
 
 			_schedules = schedules.ToArray();
 
@@ -42,52 +47,60 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			double fitness = 0;
 
-			Dictionary<Course, TimeSpan> coursesWorkload = new Dictionary<Course, TimeSpan>();
+			Dictionary<Course, TimeSpan> coursesWorkload = _courses.ToDictionary(course => course, course => new TimeSpan());
+
 			Dictionary<Course, Teacher> assignedCourses = new Dictionary<Course, Teacher>();
-			Dictionary<Teacher, HashSet<Course>> assignedTeachers = new Dictionary<Teacher, HashSet<Course>>();
-			Dictionary<Classroom, HashSet<TimePeriod>> assignedClassrooms = new Dictionary<Classroom, HashSet<TimePeriod>>();
+
+			Dictionary<Teacher, HashSet<Course>> assignedTeachers = _teachers.ToDictionary(teacher => teacher, teacher => new HashSet<Course>(_courses.Count));
+			Dictionary<Classroom, HashSet<TimePeriod>> assignedClassrooms = _classrooms.ToDictionary(classroom => classroom, classroom => new HashSet<TimePeriod>(_timePeriods.Count));
 
 			foreach (KeyValuePair<PositionTypeEntry, double> calculatedSchedule in _schedules.Select(schedule => new KeyValuePair<PositionTypeEntry, double>((PositionTypeEntry)schedule, schedule.ToDouble()))
-															   .OrderByDescending(calculatedSchedule => calculatedSchedule.Value))
+																					.OrderBy(calculatedSchedule => calculatedSchedule.Value))
 			{
-				fitness += calculatedSchedule.Value;
-
-				if (!assignedTeachers.ContainsKey(calculatedSchedule.Key.Teacher))
-					assignedTeachers.Add(calculatedSchedule.Key.Teacher, new HashSet<Course> { calculatedSchedule.Key.Course });
-
-				/*Teacher is assigned to too many courses*/
-				else if (assignedTeachers[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.Course)
-					&& assignedTeachers[calculatedSchedule.Key.Teacher].Count > _teacherMaxAssignedCourses)
-					fitness += (double)EValidationCosts.GravePenalty;
-
-				if (!coursesWorkload.ContainsKey(calculatedSchedule.Key.Course))
+				if (calculatedSchedule.Key.Course != null && calculatedSchedule.Key.Classroom != null)
 				{
-					coursesWorkload.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.TimePeriod.Duration);
-					assignedCourses.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
+					/*Teacher is assigned to too many courses*/
+					if (assignedTeachers[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.Course)
+						&& assignedTeachers[calculatedSchedule.Key.Teacher].Count > _teacherMaxAssignedCourses)
+						calculatedSchedule.Key.Reset();
+
+					else
+					{
+						fitness += calculatedSchedule.Value;
+
+						if (!assignedCourses.ContainsKey(calculatedSchedule.Key.Course))
+						{
+							assignedCourses.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
+							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
+						}
+
+						/*Course already assigned to a teacher*/
+						else if (assignedCourses[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
+							fitness += (double)EValidationCosts.GravePenalty;
+
+						else
+							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
+
+						/*Classroom is already in use*/
+						if (!assignedClassrooms[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
+							fitness += (double)EValidationCosts.GravePenalty;
+					}
 				}
 
-				/*Course already assigned to a teacher*/
-				else if (assignedCourses[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
-					fitness += (double)EValidationCosts.GravePenalty;
-
-				/*Classroom is already in use*/
-				if (!assignedClassrooms.ContainsKey(calculatedSchedule.Key.Classroom))
-					assignedClassrooms.Add(calculatedSchedule.Key.Classroom, new HashSet<TimePeriod> { calculatedSchedule.Key.TimePeriod });
-
-				else if (!assignedClassrooms[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
-					fitness += (double)EValidationCosts.GravePenalty;
+				else
+					fitness += calculatedSchedule.Value;
 			}
 
 			/*Penalty based on the course's workload*/
 			foreach (KeyValuePair<Course, TimeSpan> courseWorkload in coursesWorkload)
 			{
 				/*If workload was not met*/
-				if (courseWorkload.Key.WeeklyWorkload < courseWorkload.Value)
-					fitness += (Double)EValidationCosts.GravePenalty;
+				if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
+					fitness += (Double)EValidationCosts.GravePenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 10);
 
 				/*If way past required workload*/
-				else if (courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25 > courseWorkload.Value.TotalMilliseconds)
-					fitness += (Double)EValidationCosts.MediumPenalty;
+				else if (courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25 < courseWorkload.Value.TotalMilliseconds)
+					fitness += (Double)EValidationCosts.SmallPenalty * ((courseWorkload.Value.TotalMilliseconds - courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25) / 10);
 			}
 
 			return fitness;
@@ -99,6 +112,8 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 		public void Update(int index, IVelocityTypeEntry velocity) => _schedules[index].Update(velocity);
 
-		public override string ToString() => JsonSerializer.Serialize(Schedule);
+		public IEnumerable<PositionTypeEntry> GetFinalSchedule() => _schedules.Where(entry => (entry as PositionTypeEntry).Course != null).Select(entry => entry as PositionTypeEntry);
+
+		public override string ToString() => JsonSerializer.Serialize(_schedules);
 	}
 }

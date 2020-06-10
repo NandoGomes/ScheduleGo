@@ -9,7 +9,7 @@ namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 	public class Swarm<TPositionType, TVelocityType> : IList<Particle<TPositionType, TVelocityType>> where TPositionType : class, IPositionType, new() where TVelocityType : class, IVelocityType, new()
 	{
 		private List<Particle<TPositionType, TVelocityType>> _particles;
-		private double[] _optimalFitnessRange = new double[] { 0, 0 };
+		private double[] _optimalFitnessRange = new double[] { double.MinValue, double.MinValue };
 
 		public Swarm(int lifetime,
 			   double weight,

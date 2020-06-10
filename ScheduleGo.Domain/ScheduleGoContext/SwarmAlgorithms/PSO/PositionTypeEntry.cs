@@ -41,8 +41,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			CourseId = random.Next(_courses.Count());
 			ClassroomId = random.Next(_classrooms.Count());
 
-			Course = _courses.ElementAtOrDefault(CourseId);
-			Classroom = _classrooms.ElementAtOrDefault(ClassroomId);
+			_fetchCourseAndClassroom();
 
 			return this;
 		}
@@ -51,34 +50,59 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			double value = 0;
 
-			if (Course != null && Classroom != null)
+			if (Course != null)
 			{
+				/*Teacher Must Be qualified for this course*/
 				if (!Teacher.IsQualified(Course))
+					value += (double)EValidationCosts.GravePenalty;
+
+				/*Teacher prefers this course*/
+				if (!Teacher.Prefers(Course))
+					value += (double)EValidationCosts.SmallPenalty;
+
+				/*Teacher Must Be available*/
+				if (!Teacher.IsAvailable(TimePeriod))
 					value += (double)EValidationCosts.MediumPenalty;
 
-				if (Teacher.Prefers(Course))
-					value += (double)EValidationCosts.SmallBonus;
+				/*Teacher prefers this time*/
+				if (!Teacher.Prefers(TimePeriod))
+					value += (double)EValidationCosts.SmallPenalty;
 
-				if (!Teacher.IsAvailable(TimePeriod))
-					value += (double)EValidationCosts.GravePenalty;
-
-				if (Teacher.Prefers(TimePeriod))
-					value += (double)EValidationCosts.MediumBonus;
-
+				/*Course Must Be availble at this time*/
 				if (!Course.IsAvailable(TimePeriod))
-					value += (double)EValidationCosts.GravePenalty;
+					value += (double)EValidationCosts.MediumPenalty;
 
-				if (Course.StudentsCount > Classroom.Capacity)
-					value += (double)EValidationCosts.GravePenalty;
+				if (Classroom != null)
+				{
+					/*Classroom must be large enought for all students*/
+					if (Course.StudentsCount > Classroom.Capacity)
+						value += (double)EValidationCosts.GravePenalty;
 
-				if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
-					value += (double)EValidationCosts.GravePenalty;
+					/*Choosen classroom must have the required type by the course*/
+					if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
+						value += (double)EValidationCosts.GravePenalty;
 
-				if (!Classroom.IsAvailable(TimePeriod))
+					/*Classroom Must Be available at the required time*/
+					if (!Classroom.IsAvailable(TimePeriod))
+						value += (double)EValidationCosts.MediumPenalty;
+				}
+
+				else
 					value += (double)EValidationCosts.GravePenalty;
 			}
 
+			else
+				value = (double)EValidationCosts.SmallPenalty;
+
 			return value;
+		}
+
+		internal void Reset()
+		{
+			CourseId = 0;
+			ClassroomId = 0;
+
+			_fetchCourseAndClassroom();
 		}
 
 		public IPositionTypeEntry Clone() => new PositionTypeEntry(WeekDay, _courses, _classrooms)
@@ -94,17 +118,28 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			CourseId = (velocity as VelocityTypeEntry).GetNewCouseId(CourseId);
 			ClassroomId = (velocity as VelocityTypeEntry).GetNewClassroomId(ClassroomId);
 
-			Course = _courses.ElementAtOrDefault(CourseId);
-			Classroom = _classrooms.ElementAtOrDefault(ClassroomId);
+			_fetchCourseAndClassroom();
+		}
+
+		private void _fetchCourseAndClassroom()
+		{
+			Course = _courses.ElementAtOrDefault(CourseId - 1);
+			Classroom = _classrooms.ElementAtOrDefault(ClassroomId - 1);
 		}
 
 		public override string ToString() => JsonSerializer.Serialize(new
 		{
-			WeekDay = WeekDay,
 			Teacher = Teacher.Name,
-			TimePeriod = TimePeriod.Description,
 			Course = Course.Name,
 			Classroom = Classroom.Description,
+			TeacherQualified = Teacher.IsQualified(Course),
+			PrefersCourse = Teacher.Prefers(Course),
+			TeacherAvailable = Teacher.IsAvailable(TimePeriod),
+			PrefersTime = Teacher.Prefers(TimePeriod),
+			NeededClassroomType = Course.NeededClassroomTypeId == Classroom.ClassroomTypeId,
+			CourseAvailable = Course.IsAvailable(TimePeriod),
+			ClassroomAvailable = Classroom.IsAvailable(TimePeriod),
+			ClassroomSizeEnought = Course.StudentsCount <= Classroom.Capacity,
 			CourseId = CourseId,
 			ClassroomId = ClassroomId,
 		});
