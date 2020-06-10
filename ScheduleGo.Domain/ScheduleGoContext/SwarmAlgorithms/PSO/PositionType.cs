@@ -49,10 +49,11 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 			Dictionary<Course, TimeSpan> coursesWorkload = _courses.ToDictionary(course => course, course => new TimeSpan());
 
-			Dictionary<Course, Teacher> assignedCourses = new Dictionary<Course, Teacher>();
+			Dictionary<Course, Teacher> courseAssignedTeachers = new Dictionary<Course, Teacher>();
 
-			Dictionary<Teacher, HashSet<Course>> assignedTeachers = _teachers.ToDictionary(teacher => teacher, teacher => new HashSet<Course>(_courses.Count));
-			Dictionary<Classroom, HashSet<TimePeriod>> assignedClassrooms = _classrooms.ToDictionary(classroom => classroom, classroom => new HashSet<TimePeriod>(_timePeriods.Count));
+			Dictionary<Teacher, HashSet<Course>> teacherAssignedCourses = _teachers.ToDictionary(teacher => teacher, teacher => new HashSet<Course>(_courses.Count));
+			Dictionary<Teacher, HashSet<TimePeriod>> teacherAssignedTimePeriods = _teachers.ToDictionary(teacher => teacher, teacher => new HashSet<TimePeriod>(_timePeriods.Count));
+			Dictionary<Classroom, HashSet<TimePeriod>> classroomAssignedTimePeriodss = _classrooms.ToDictionary(classroom => classroom, classroom => new HashSet<TimePeriod>(_timePeriods.Count));
 
 			foreach (KeyValuePair<PositionTypeEntry, double> calculatedSchedule in _schedules.Select(schedule => new KeyValuePair<PositionTypeEntry, double>((PositionTypeEntry)schedule, schedule.ToDouble()))
 																					.OrderBy(calculatedSchedule => calculatedSchedule.Value))
@@ -60,29 +61,33 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 				if (calculatedSchedule.Key.Course != null && calculatedSchedule.Key.Classroom != null)
 				{
 					/*Teacher is assigned to too many courses*/
-					if (assignedTeachers[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.Course)
-						&& assignedTeachers[calculatedSchedule.Key.Teacher].Count > _teacherMaxAssignedCourses)
+					if (teacherAssignedCourses[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.Course)
+						&& teacherAssignedCourses[calculatedSchedule.Key.Teacher].Count > _teacherMaxAssignedCourses)
 						calculatedSchedule.Key.Reset();
 
 					else
 					{
 						fitness += calculatedSchedule.Value;
 
-						if (!assignedCourses.ContainsKey(calculatedSchedule.Key.Course))
+						if (!courseAssignedTeachers.ContainsKey(calculatedSchedule.Key.Course))
 						{
-							assignedCourses.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
+							courseAssignedTeachers.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
 							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
 						}
 
 						/*Course already assigned to a teacher*/
-						else if (assignedCourses[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
+						else if (courseAssignedTeachers[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
 							fitness += (double)EValidationCosts.GravePenalty;
 
 						else
 							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
 
+						/*Teacher is already assigned at this time*/
+						if (!teacherAssignedTimePeriods[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.TimePeriod))
+							fitness += (double)EValidationCosts.GravePenalty;
+
 						/*Classroom is already in use*/
-						if (!assignedClassrooms[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
+						if (!classroomAssignedTimePeriodss[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
 							fitness += (double)EValidationCosts.GravePenalty;
 					}
 				}

@@ -54,7 +54,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			{
 				/*Teacher Must Be qualified for this course*/
 				if (!Teacher.IsQualified(Course))
-					value += (double)EValidationCosts.GravePenalty;
+					value += (double)EValidationCosts.UltimatePenalty;
 
 				/*Teacher prefers this course*/
 				if (!Teacher.Prefers(Course))
@@ -76,11 +76,11 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 				{
 					/*Classroom must be large enought for all students*/
 					if (Course.StudentsCount > Classroom.Capacity)
-						value += (double)EValidationCosts.GravePenalty;
+						value += (double)EValidationCosts.MegaPenalty;
 
 					/*Choosen classroom must have the required type by the course*/
 					if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
-						value += (double)EValidationCosts.GravePenalty;
+						value += (double)EValidationCosts.MegaPenalty;
 
 					/*Classroom Must Be available at the required time*/
 					if (!Classroom.IsAvailable(TimePeriod))
@@ -88,7 +88,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 				}
 
 				else
-					value += (double)EValidationCosts.GravePenalty;
+					value += (double)EValidationCosts.UltimatePenalty;
 			}
 
 			else

@@ -67,7 +67,9 @@ namespace ScheduleGo.Engine.Workers
 
 				var orderedResult = result.Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
 
-				var resultWithQualifiedTeachers = result.Where(entry => entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+				var resultWithUnqualifiedTeachers = result.Where(entry => !entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+				var resultWithoutClassrooms = result.Where(entry => entry.Classroom == null).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+				var resultWithInvalidClassrooms = result.Where(entry => entry.Classroom?.ClassroomTypeId != entry.Course?.NeededClassroomTypeId).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
 
 				var sundays = result.Where(entry => entry.WeekDay == EWeekDay.Sunday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var mondays = result.Where(entry => entry.WeekDay == EWeekDay.Monday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
@@ -76,6 +78,15 @@ namespace ScheduleGo.Engine.Workers
 				var thursdays = result.Where(entry => entry.WeekDay == EWeekDay.Thursday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var fridays = result.Where(entry => entry.WeekDay == EWeekDay.Friday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var saturdays = result.Where(entry => entry.WeekDay == EWeekDay.Saturday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
+
+				var teachersSchedules = result.GroupBy(entry => entry.Teacher.Name)
+								  .ToDictionary(entry => entry.Key,
+								  			entry => entry.GroupBy(schedule => schedule.WeekDay)
+												.OrderBy(schedule => schedule.Key)
+						   						.ToDictionary(schedule => schedule.Key,
+															schedule => schedule.OrderBy(dailySchedule => dailySchedule.TimePeriod.Start)
+																.GroupBy(dailySchedule => dailySchedule.TimePeriod.Description)
+			   													.ToDictionary(dailySchedule => dailySchedule.Key, dailySchedule => dailySchedule.ToList())));
 			}
 
 			return null;

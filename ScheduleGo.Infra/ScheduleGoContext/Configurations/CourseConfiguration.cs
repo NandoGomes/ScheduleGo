@@ -23,8 +23,11 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 				.OnDelete(DeleteBehavior.NoAction)
 				.IsRequired();
 
-			builder.Ignore(course => course.CategoryTags);
-			builder.Ignore(course => course.AvailablePeriods);
+			builder.HasMany(course => course.CategoryTags)
+				.WithOne(link => link.Left);
+
+			builder.HasMany(course => course.AvailablePeriods)
+				.WithOne(link => link.Left);
 		}
 	}
 }
