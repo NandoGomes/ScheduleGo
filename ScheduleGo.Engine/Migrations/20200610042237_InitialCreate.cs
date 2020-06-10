@@ -50,7 +50,8 @@ namespace ScheduleGo.Engine.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     Description = table.Column<string>(nullable: false),
                     Start = table.Column<TimeSpan>(nullable: false),
-                    End = table.Column<TimeSpan>(nullable: false)
+                    End = table.Column<TimeSpan>(nullable: false),
+                    WeekDay = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -101,20 +102,20 @@ namespace ScheduleGo.Engine.Migrations
                 name: "TeacherAvailablePeriod",
                 columns: table => new
                 {
-                    Teacher = table.Column<Guid>(nullable: false),
-                    TimePeriod = table.Column<Guid>(nullable: false)
+                    TeacherId = table.Column<Guid>(nullable: false),
+                    TimePeriodId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TeacherAvailablePeriod", x => new { x.Teacher, x.TimePeriod });
+                    table.PrimaryKey("PK_TeacherAvailablePeriod", x => new { x.TeacherId, x.TimePeriodId });
                     table.ForeignKey(
-                        name: "FK_TeacherAvailablePeriod_Teachers_Teacher",
-                        column: x => x.Teacher,
+                        name: "FK_TeacherAvailablePeriod_Teachers_TeacherId",
+                        column: x => x.TeacherId,
                         principalTable: "Teachers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TeacherAvailablePeriod_TimePeriods_TimePeriod",
-                        column: x => x.TimePeriod,
+                        name: "FK_TeacherAvailablePeriod_TimePeriods_TimePeriodId",
+                        column: x => x.TimePeriodId,
                         principalTable: "TimePeriods",
                         principalColumn: "Id");
                 });
@@ -123,20 +124,20 @@ namespace ScheduleGo.Engine.Migrations
                 name: "TeacherPreferredPeriod",
                 columns: table => new
                 {
-                    Teacher = table.Column<Guid>(nullable: false),
-                    TimePeriod = table.Column<Guid>(nullable: false)
+                    TeacherId = table.Column<Guid>(nullable: false),
+                    TimePeriodId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TeacherPreferredPeriod", x => new { x.Teacher, x.TimePeriod });
+                    table.PrimaryKey("PK_TeacherPreferredPeriod", x => new { x.TeacherId, x.TimePeriodId });
                     table.ForeignKey(
-                        name: "FK_TeacherPreferredPeriod_Teachers_Teacher",
-                        column: x => x.Teacher,
+                        name: "FK_TeacherPreferredPeriod_Teachers_TeacherId",
+                        column: x => x.TeacherId,
                         principalTable: "Teachers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TeacherPreferredPeriod_TimePeriods_TimePeriod",
-                        column: x => x.TimePeriod,
+                        name: "FK_TeacherPreferredPeriod_TimePeriods_TimePeriodId",
+                        column: x => x.TimePeriodId,
                         principalTable: "TimePeriods",
                         principalColumn: "Id");
                 });
@@ -145,20 +146,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "ClassroomTag",
                 columns: table => new
                 {
-                    Classroom = table.Column<Guid>(nullable: false),
-                    Tag = table.Column<Guid>(nullable: false)
+                    ClassroomId = table.Column<Guid>(nullable: false),
+                    TagId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ClassroomTag", x => new { x.Classroom, x.Tag });
+                    table.PrimaryKey("PK_ClassroomTag", x => new { x.ClassroomId, x.TagId });
                     table.ForeignKey(
-                        name: "FK_ClassroomTag_Classrooms_Classroom",
-                        column: x => x.Classroom,
+                        name: "FK_ClassroomTag_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
                         principalTable: "Classrooms",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ClassroomTag_Tags_Tag",
-                        column: x => x.Tag,
+                        name: "FK_ClassroomTag_Tags_TagId",
+                        column: x => x.TagId,
                         principalTable: "Tags",
                         principalColumn: "Id");
                 });
@@ -167,20 +169,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "ClassroomTimePeriod",
                 columns: table => new
                 {
-                    Classroom = table.Column<Guid>(nullable: false),
-                    TimePeriod = table.Column<Guid>(nullable: false)
+                    ClassroomId = table.Column<Guid>(nullable: false),
+                    TimePeriodId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ClassroomTimePeriod", x => new { x.Classroom, x.TimePeriod });
+                    table.PrimaryKey("PK_ClassroomTimePeriod", x => new { x.ClassroomId, x.TimePeriodId });
                     table.ForeignKey(
-                        name: "FK_ClassroomTimePeriod_Classrooms_Classroom",
-                        column: x => x.Classroom,
+                        name: "FK_ClassroomTimePeriod_Classrooms_ClassroomId",
+                        column: x => x.ClassroomId,
                         principalTable: "Classrooms",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ClassroomTimePeriod_TimePeriods_TimePeriod",
-                        column: x => x.TimePeriod,
+                        name: "FK_ClassroomTimePeriod_TimePeriods_TimePeriodId",
+                        column: x => x.TimePeriodId,
                         principalTable: "TimePeriods",
                         principalColumn: "Id");
                 });
@@ -189,20 +192,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "CourseTag",
                 columns: table => new
                 {
-                    Course = table.Column<Guid>(nullable: false),
-                    Tag = table.Column<Guid>(nullable: false)
+                    CourseId = table.Column<Guid>(nullable: false),
+                    TagId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseTag", x => new { x.Course, x.Tag });
+                    table.PrimaryKey("PK_CourseTag", x => new { x.CourseId, x.TagId });
                     table.ForeignKey(
-                        name: "FK_CourseTag_Courses_Course",
-                        column: x => x.Course,
+                        name: "FK_CourseTag_Courses_CourseId",
+                        column: x => x.CourseId,
                         principalTable: "Courses",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CourseTag_Tags_Tag",
-                        column: x => x.Tag,
+                        name: "FK_CourseTag_Tags_TagId",
+                        column: x => x.TagId,
                         principalTable: "Tags",
                         principalColumn: "Id");
                 });
@@ -211,20 +215,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "CourseTimePeriod",
                 columns: table => new
                 {
-                    Course = table.Column<Guid>(nullable: false),
-                    TimePeriod = table.Column<Guid>(nullable: false)
+                    CourseId = table.Column<Guid>(nullable: false),
+                    TimePeriodId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseTimePeriod", x => new { x.Course, x.TimePeriod });
+                    table.PrimaryKey("PK_CourseTimePeriod", x => new { x.CourseId, x.TimePeriodId });
                     table.ForeignKey(
-                        name: "FK_CourseTimePeriod_Courses_Course",
-                        column: x => x.Course,
+                        name: "FK_CourseTimePeriod_Courses_CourseId",
+                        column: x => x.CourseId,
                         principalTable: "Courses",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CourseTimePeriod_TimePeriods_TimePeriod",
-                        column: x => x.TimePeriod,
+                        name: "FK_CourseTimePeriod_TimePeriods_TimePeriodId",
+                        column: x => x.TimePeriodId,
                         principalTable: "TimePeriods",
                         principalColumn: "Id");
                 });
@@ -233,21 +238,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "TeacherPreferredCourse",
                 columns: table => new
                 {
-                    Teacher = table.Column<Guid>(nullable: false),
-                    Course = table.Column<Guid>(nullable: false)
+                    TeacherId = table.Column<Guid>(nullable: false),
+                    CourseId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TeacherPreferredCourse", x => new { x.Teacher, x.Course });
+                    table.PrimaryKey("PK_TeacherPreferredCourse", x => new { x.TeacherId, x.CourseId });
                     table.ForeignKey(
-                        name: "FK_TeacherPreferredCourse_Teachers_Teacher",
-                        column: x => x.Teacher,
-                        principalTable: "Teachers",
+                        name: "FK_TeacherPreferredCourse_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TeacherPreferredCourse_Courses_Course",
-                        column: x => x.Course,
-                        principalTable: "Courses",
+                        name: "FK_TeacherPreferredCourse_Teachers_TeacherId",
+                        column: x => x.TeacherId,
+                        principalTable: "Teachers",
                         principalColumn: "Id");
                 });
 
@@ -255,21 +260,21 @@ namespace ScheduleGo.Engine.Migrations
                 name: "TeacherQualifiedCourse",
                 columns: table => new
                 {
-                    Teacher = table.Column<Guid>(nullable: false),
-                    Course = table.Column<Guid>(nullable: false)
+                    TeacherId = table.Column<Guid>(nullable: false),
+                    CourseId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TeacherQualifiedCourse", x => new { x.Teacher, x.Course });
+                    table.PrimaryKey("PK_TeacherQualifiedCourse", x => new { x.TeacherId, x.CourseId });
                     table.ForeignKey(
-                        name: "FK_TeacherQualifiedCourse_Teachers_Teacher",
-                        column: x => x.Teacher,
-                        principalTable: "Teachers",
+                        name: "FK_TeacherQualifiedCourse_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_TeacherQualifiedCourse_Courses_Course",
-                        column: x => x.Course,
-                        principalTable: "Courses",
+                        name: "FK_TeacherQualifiedCourse_Teachers_TeacherId",
+                        column: x => x.TeacherId,
+                        principalTable: "Teachers",
                         principalColumn: "Id");
                 });
 
@@ -279,14 +284,14 @@ namespace ScheduleGo.Engine.Migrations
                 column: "ClassroomTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassroomTag_Tag",
+                name: "IX_ClassroomTag_TagId",
                 table: "ClassroomTag",
-                column: "Tag");
+                column: "TagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClassroomTimePeriod_TimePeriod",
+                name: "IX_ClassroomTimePeriod_TimePeriodId",
                 table: "ClassroomTimePeriod",
-                column: "TimePeriod");
+                column: "TimePeriodId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Courses_NeededClassroomTypeId",
@@ -294,34 +299,34 @@ namespace ScheduleGo.Engine.Migrations
                 column: "NeededClassroomTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseTag_Tag",
+                name: "IX_CourseTag_TagId",
                 table: "CourseTag",
-                column: "Tag");
+                column: "TagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseTimePeriod_TimePeriod",
+                name: "IX_CourseTimePeriod_TimePeriodId",
                 table: "CourseTimePeriod",
-                column: "TimePeriod");
+                column: "TimePeriodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TeacherAvailablePeriod_TimePeriod",
+                name: "IX_TeacherAvailablePeriod_TimePeriodId",
                 table: "TeacherAvailablePeriod",
-                column: "TimePeriod");
+                column: "TimePeriodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TeacherPreferredCourse_Course",
+                name: "IX_TeacherPreferredCourse_CourseId",
                 table: "TeacherPreferredCourse",
-                column: "Course");
+                column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TeacherPreferredPeriod_TimePeriod",
+                name: "IX_TeacherPreferredPeriod_TimePeriodId",
                 table: "TeacherPreferredPeriod",
-                column: "TimePeriod");
+                column: "TimePeriodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TeacherQualifiedCourse_Course",
+                name: "IX_TeacherQualifiedCourse_CourseId",
                 table: "TeacherQualifiedCourse",
-                column: "Course");
+                column: "CourseId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -360,10 +365,10 @@ namespace ScheduleGo.Engine.Migrations
                 name: "TimePeriods");
 
             migrationBuilder.DropTable(
-                name: "Teachers");
+                name: "Courses");
 
             migrationBuilder.DropTable(
-                name: "Courses");
+                name: "Teachers");
 
             migrationBuilder.DropTable(
                 name: "ClassroomTypes");

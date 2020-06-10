@@ -1,4 +1,6 @@
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using ScheduleGo.Domain.ScheduleGoContext.Entities;
 using ScheduleGo.Domain.ScheduleGoContext.Entities.Links;
 using ScheduleGo.Infra.ScheduleGoContext.Configurations;
@@ -21,6 +23,9 @@ namespace ScheduleGo.Infra.ScheduleGoContext.DataContexts
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			foreach (IMutableForeignKey mutableForeignKey in modelBuilder.Model.GetEntityTypes().SelectMany(mutableEntityType => mutableEntityType.GetForeignKeys()))
+				mutableForeignKey.DeleteBehavior = DeleteBehavior.NoAction;
+
 			modelBuilder.ApplyConfiguration(new ClassroomConfiguration());
 			modelBuilder.ApplyConfiguration(new ClassroomTypeConfiguration());
 			modelBuilder.ApplyConfiguration(new CourseConfiguration());

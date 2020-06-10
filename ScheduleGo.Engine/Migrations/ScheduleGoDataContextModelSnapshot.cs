@@ -89,136 +89,136 @@ namespace ScheduleGo.Engine.Migrations
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.ClassroomTag", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Classroom")
+                    b.Property<Guid>("ClassroomId")
+                        .HasColumnName("ClassroomId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("Tag")
+                    b.Property<Guid>("TagId")
+                        .HasColumnName("TagId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("ClassroomId", "TagId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TagId");
 
                     b.ToTable("ClassroomTag");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.ClassroomTimePeriod", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Classroom")
+                    b.Property<Guid>("ClassroomId")
+                        .HasColumnName("ClassroomId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("TimePeriod")
+                    b.Property<Guid>("TimePeriodId")
+                        .HasColumnName("TimePeriodId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("ClassroomId", "TimePeriodId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TimePeriodId");
 
                     b.ToTable("ClassroomTimePeriod");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.CourseTag", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Course")
+                    b.Property<Guid>("CourseId")
+                        .HasColumnName("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("Tag")
+                    b.Property<Guid>("TagId")
+                        .HasColumnName("TagId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("CourseId", "TagId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TagId");
 
                     b.ToTable("CourseTag");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.CourseTimePeriod", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Course")
+                    b.Property<Guid>("CourseId")
+                        .HasColumnName("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("TimePeriod")
+                    b.Property<Guid>("TimePeriodId")
+                        .HasColumnName("TimePeriodId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("CourseId", "TimePeriodId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TimePeriodId");
 
                     b.ToTable("CourseTimePeriod");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherAvailablePeriod", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Teacher")
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnName("TeacherId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("TimePeriod")
+                    b.Property<Guid>("TimePeriodId")
+                        .HasColumnName("TimePeriodId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("TeacherId", "TimePeriodId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TimePeriodId");
 
                     b.ToTable("TeacherAvailablePeriod");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherPreferredCourse", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Teacher")
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnName("TeacherId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("Course")
+                    b.Property<Guid>("CourseId")
+                        .HasColumnName("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("TeacherId", "CourseId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("TeacherPreferredCourse");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherPreferredPeriod", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Teacher")
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnName("TeacherId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("TimePeriod")
+                    b.Property<Guid>("TimePeriodId")
+                        .HasColumnName("TimePeriodId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("TeacherId", "TimePeriodId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("TimePeriodId");
 
                     b.ToTable("TeacherPreferredPeriod");
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherQualifiedCourse", b =>
                 {
-                    b.Property<Guid>("LeftId")
-                        .HasColumnName("Teacher")
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnName("TeacherId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("RightId")
-                        .HasColumnName("Course")
+                    b.Property<Guid>("CourseId")
+                        .HasColumnName("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("LeftId", "RightId");
+                    b.HasKey("TeacherId", "CourseId");
 
-                    b.HasIndex("RightId");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("TeacherQualifiedCourse");
                 });
@@ -299,13 +299,13 @@ namespace ScheduleGo.Engine.Migrations
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Classroom", "Left")
                         .WithMany()
-                        .HasForeignKey("LeftId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("ClassroomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Tag", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -314,13 +314,13 @@ namespace ScheduleGo.Engine.Migrations
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Classroom", "Left")
                         .WithMany()
-                        .HasForeignKey("LeftId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("ClassroomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.TimePeriod", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TimePeriodId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -329,13 +329,13 @@ namespace ScheduleGo.Engine.Migrations
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Left")
                         .WithMany()
-                        .HasForeignKey("LeftId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Tag", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -344,13 +344,13 @@ namespace ScheduleGo.Engine.Migrations
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Left")
                         .WithMany()
-                        .HasForeignKey("LeftId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.TimePeriod", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TimePeriodId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -358,29 +358,29 @@ namespace ScheduleGo.Engine.Migrations
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherAvailablePeriod", b =>
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
-                        .WithMany()
-                        .HasForeignKey("LeftId")
+                        .WithMany("AvailablePeriods")
+                        .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.TimePeriod", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TimePeriodId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherPreferredCourse", b =>
                 {
-                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
+                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Right")
                         .WithMany()
-                        .HasForeignKey("LeftId")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Right")
-                        .WithMany()
-                        .HasForeignKey("RightId")
+                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
+                        .WithMany("PreferredCourses")
+                        .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
@@ -388,29 +388,29 @@ namespace ScheduleGo.Engine.Migrations
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherPreferredPeriod", b =>
                 {
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
-                        .WithMany()
-                        .HasForeignKey("LeftId")
+                        .WithMany("PreferredPeriods")
+                        .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.TimePeriod", "Right")
                         .WithMany()
-                        .HasForeignKey("RightId")
+                        .HasForeignKey("TimePeriodId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("ScheduleGo.Domain.ScheduleGoContext.Entities.Links.TeacherQualifiedCourse", b =>
                 {
-                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
+                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Right")
                         .WithMany()
-                        .HasForeignKey("LeftId")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Course", "Right")
-                        .WithMany()
-                        .HasForeignKey("RightId")
+                    b.HasOne("ScheduleGo.Domain.ScheduleGoContext.Entities.Teacher", "Left")
+                        .WithMany("QualifiedCourses")
+                        .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

@@ -14,10 +14,18 @@ namespace ScheduleGo.Infra.ScheduleGoContext.Configurations
 
 			builder.Property(teacher => teacher.Name).IsRequired();
 
-			builder.Ignore(teacher => teacher.PreferredCourses);
-			builder.Ignore(teacher => teacher.QualifiedCourses);
-			builder.Ignore(teacher => teacher.PreferredPeriods);
-			builder.Ignore(teacher => teacher.AvailablePeriods);
+			builder.HasMany(teacher => teacher.PreferredCourses)
+				.WithOne(linkEntity => linkEntity.Left);
+
+			builder.HasMany(teacher => teacher.QualifiedCourses)
+				.WithOne(linkEntity => linkEntity.Left);
+
+			builder.HasMany(teacher => teacher.PreferredPeriods)
+				.WithOne(linkEntity => linkEntity.Left);
+
+			builder.HasMany(teacher => teacher.AvailablePeriods)
+				.WithOne(linkEntity => linkEntity.Left);
+
 		}
 	}
 }

@@ -96,7 +96,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			{
 				/*If workload was not met*/
 				if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
-					fitness += (Double)EValidationCosts.GravePenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 10);
+					fitness += (Double)EValidationCosts.MediumPenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 1);
 
 				/*If way past required workload*/
 				else if (courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25 < courseWorkload.Value.TotalMilliseconds)

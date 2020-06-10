@@ -38,7 +38,7 @@ namespace ScheduleGo.Engine.Workers
 		{
 			while (!stoppingToken.IsCancellationRequested)
 			{
-				Swarm<PositionType, VelocityType> swarm = new Swarm<PositionType, VelocityType>(1000, 0.729, 1.49445);
+				Swarm<PositionType, VelocityType> swarm = new Swarm<PositionType, VelocityType>(100, 0.729, 1.49445);
 
 				List<Teacher> teachers = _teacherRepository.GetAll().ToList();
 				List<Course> courses = _courseRepository.GetAll().ToList();
@@ -66,6 +66,8 @@ namespace ScheduleGo.Engine.Workers
 				var result = (swarm.BestPosition.Position as PositionType).GetFinalSchedule();
 
 				var orderedResult = result.Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+
+				var resultWithQualifiedTeachers = result.Where(entry => entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
 
 				var sundays = result.Where(entry => entry.WeekDay == EWeekDay.Sunday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var mondays = result.Where(entry => entry.WeekDay == EWeekDay.Monday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
