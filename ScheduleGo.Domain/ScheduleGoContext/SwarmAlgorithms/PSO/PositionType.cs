@@ -67,17 +67,17 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 					else
 					{
-						fitness += calculatedSchedule.Value;
-
 						if (!courseAssignedTeachers.ContainsKey(calculatedSchedule.Key.Course))
 							courseAssignedTeachers.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
 
 						/*Course already assigned to another teacher*/
 						if (courseAssignedTeachers[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
-							fitness += (double)EValidationCosts.UltimatePenalty;
+							calculatedSchedule.Key.Reset();
 
 						else
 						{
+							fitness += calculatedSchedule.Value;
+
 							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
 
 							/*Teacher is already assigned at this time*/
