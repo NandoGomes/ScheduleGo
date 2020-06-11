@@ -28,20 +28,15 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		public TimePeriod TimePeriod { get; private set; }
 		public Course Course { get; private set; }
 		public Classroom Classroom { get; private set; }
-		public int CourseId { get; private set; }
-		public int ClassroomId { get; private set; }
+		public int CourseIndex { get; private set; }
+		public int ClassroomIndex { get; private set; }
 
 		public IPositionTypeEntry Initialize(params object[] args)
 		{
 			Teacher = args[0] as Teacher;
 			TimePeriod = args[1] as TimePeriod;
 
-			Random random = new Random();
-
-			CourseId = random.Next(_courses.Count());
-			ClassroomId = random.Next(_classrooms.Count());
-
-			_fetchCourseAndClassroom();
+			Randomize();
 
 			return this;
 		}
@@ -54,15 +49,11 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			{
 				/*Teacher Must Be qualified for this course*/
 				if (!Teacher.IsQualified(Course))
-					value += (double)EValidationCosts.UltimatePenalty;
+					value += (double)EValidationCosts.MegaPenalty;
 
 				/*Teacher prefers this course*/
 				if (!Teacher.Prefers(Course))
 					value += (double)EValidationCosts.SmallPenalty;
-
-				/*Teacher Must Be available*/
-				if (!Teacher.IsAvailable(TimePeriod))
-					value += (double)EValidationCosts.MediumPenalty;
 
 				/*Teacher prefers this time*/
 				if (!Teacher.Prefers(TimePeriod))
@@ -72,35 +63,39 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 				if (!Course.IsAvailable(TimePeriod))
 					value += (double)EValidationCosts.MediumPenalty;
 
-				if (Classroom != null)
-				{
-					/*Classroom must be large enought for all students*/
-					if (Course.StudentsCount > Classroom.Capacity)
-						value += (double)EValidationCosts.MegaPenalty;
+				/*Classroom must be large enought for all students*/
+				if (Course.StudentsCount > Classroom.Capacity)
+					value += (double)EValidationCosts.GravePenalty;
 
-					/*Choosen classroom must have the required type by the course*/
-					if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
-						value += (double)EValidationCosts.MegaPenalty;
-
-					/*Classroom Must Be available at the required time*/
-					if (!Classroom.IsAvailable(TimePeriod))
-						value += (double)EValidationCosts.MediumPenalty;
-				}
-
-				else
+				/*Choosen classroom must have the required type by the course*/
+				if (!Classroom.ClassroomType.Equals(Course.NeededClassroomType))
 					value += (double)EValidationCosts.UltimatePenalty;
+
+				/*Classroom Must Be available at the required time*/
+				if (!Classroom.IsAvailable(TimePeriod))
+					value += (double)EValidationCosts.SmallPenalty;
 			}
 
 			else
-				value = (double)EValidationCosts.SmallPenalty;
+				value += (double)EValidationCosts.MediumPenalty;
 
 			return value;
 		}
 
+		public void Randomize()
+		{
+			Random random = new Random();
+
+			CourseIndex = random.Next(_courses.Count());
+			ClassroomIndex = random.Next(_classrooms.Count());
+
+			_fetchCourseAndClassroom();
+		}
+
 		internal void Reset()
 		{
-			CourseId = 0;
-			ClassroomId = 0;
+			CourseIndex = 0;
+			ClassroomIndex = 0;
 
 			_fetchCourseAndClassroom();
 		}
@@ -110,21 +105,44 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			Teacher = Teacher,
 			Course = Course,
 			TimePeriod = TimePeriod,
-			Classroom = Classroom
+			Classroom = Classroom,
+			CourseIndex = CourseIndex,
+			ClassroomIndex = ClassroomIndex
 		};
 
 		public void Update(IVelocityTypeEntry velocity)
 		{
-			CourseId = (velocity as VelocityTypeEntry).GetNewCouseId(CourseId);
-			ClassroomId = (velocity as VelocityTypeEntry).GetNewClassroomId(ClassroomId);
+			CourseIndex = (velocity as VelocityTypeEntry).GetNewCourseIndex(CourseIndex);
+			ClassroomIndex = (velocity as VelocityTypeEntry).GetNewClassroomIndex(ClassroomIndex);
 
 			_fetchCourseAndClassroom();
 		}
 
+		public void UpdateClassroom(Classroom classroom)
+		{
+			Classroom = classroom;
+			ClassroomIndex = _classrooms.IndexOf(classroom) + 1;
+		}
+
 		private void _fetchCourseAndClassroom()
 		{
-			Course = _courses.ElementAtOrDefault(CourseId - 1);
-			Classroom = _classrooms.ElementAtOrDefault(ClassroomId - 1);
+			Course = _courses.ElementAtOrDefault(CourseIndex - 1);
+			Classroom = _classrooms.ElementAtOrDefault(ClassroomIndex - 1);
+
+			if (Classroom == null)
+				Course = null;
+
+			else if (Course != null && !Course.NeededClassroomType.Equals(Classroom))
+			{
+				int newClassroomIndex = 0;
+
+				do
+					newClassroomIndex++;
+				while (newClassroomIndex < _classrooms.Count && !Course.NeededClassroomType.Equals(_classrooms[newClassroomIndex].ClassroomType));
+
+				Classroom = _classrooms[newClassroomIndex];
+				ClassroomIndex = newClassroomIndex + 1;
+			}
 		}
 
 		public override string ToString() => JsonSerializer.Serialize(new
@@ -140,8 +158,8 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			CourseAvailable = Course.IsAvailable(TimePeriod),
 			ClassroomAvailable = Classroom.IsAvailable(TimePeriod),
 			ClassroomSizeEnought = Course.StudentsCount <= Classroom.Capacity,
-			CourseId = CourseId,
-			ClassroomId = ClassroomId,
+			CourseId = CourseIndex,
+			ClassroomId = ClassroomIndex,
 		});
 	}
 }

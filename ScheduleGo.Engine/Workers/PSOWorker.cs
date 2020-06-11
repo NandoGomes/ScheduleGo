@@ -58,18 +58,20 @@ namespace ScheduleGo.Engine.Workers
 							   velocityMaxValues);
 
 				swarm.Build(100,
-							teachers.Count * timePeriods.Count,
+							teachers.Count * timePeriods.Count, //teachers.Select(teacher => teacher.AvailablePeriods.Count()).Sum(),
 							1.49445);
 
 				swarm.Process();
 
 				var result = (swarm.BestPosition.Position as PositionType).GetFinalSchedule();
 
-				var orderedResult = result.Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+				var orderedResult = result.Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToList();
 
-				var resultWithUnqualifiedTeachers = result.Where(entry => !entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
-				var resultWithoutClassrooms = result.Where(entry => entry.Classroom == null).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
-				var resultWithInvalidClassrooms = result.Where(entry => entry.Classroom?.ClassroomTypeId != entry.Course?.NeededClassroomTypeId).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value);
+				var resultWithUnqualifiedTeachers = result.Where(entry => !entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
+				var resultsWithoutClassrooms = result.Where(entry => entry.Classroom == null).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
+				var resultsWithInvalidClassrooms = result.Where(entry => entry.Classroom?.ClassroomTypeId != entry.Course?.NeededClassroomTypeId).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
+				var CoursesWithMultipleTeachers = result.GroupBy(entry => entry.Course).Where(group => group.Select(entry => entry.Teacher).Distinct().Count() > 1).ToDictionary(group => group.Key.Name, group => group.Select(entry => entry.Teacher.Name).Distinct().ToArray());
+				var coursesWithoutTeachers = courses.Except(result.Select(entry => entry.Course).Distinct()).OrderBy(course => course.Name).Select(course => course.Name).ToList();
 
 				var sundays = result.Where(entry => entry.WeekDay == EWeekDay.Sunday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var mondays = result.Where(entry => entry.WeekDay == EWeekDay.Monday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
@@ -79,6 +81,8 @@ namespace ScheduleGo.Engine.Workers
 				var fridays = result.Where(entry => entry.WeekDay == EWeekDay.Friday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var saturdays = result.Where(entry => entry.WeekDay == EWeekDay.Saturday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 
+				var coursesPerTeacher = result.GroupBy(entry => entry.Teacher.Name).ToDictionary(group => group.Key, group => group.Select(entry => entry.Course.Name).Distinct().ToList());
+
 				var teachersSchedules = result.GroupBy(entry => entry.Teacher.Name)
 								  .ToDictionary(entry => entry.Key,
 								  			entry => entry.GroupBy(schedule => schedule.WeekDay)
@@ -87,6 +91,8 @@ namespace ScheduleGo.Engine.Workers
 															schedule => schedule.OrderBy(dailySchedule => dailySchedule.TimePeriod.Start)
 																.GroupBy(dailySchedule => dailySchedule.TimePeriod.Description)
 			   													.ToDictionary(dailySchedule => dailySchedule.Key, dailySchedule => dailySchedule.ToList())));
+
+				var finalFitness = swarm.BestPosition.Position.CalculateFitness();
 			}
 
 			return null;

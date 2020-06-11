@@ -58,7 +58,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			foreach (KeyValuePair<PositionTypeEntry, double> calculatedSchedule in _schedules.Select(schedule => new KeyValuePair<PositionTypeEntry, double>((PositionTypeEntry)schedule, schedule.ToDouble()))
 																					.OrderBy(calculatedSchedule => calculatedSchedule.Value))
 			{
-				if (calculatedSchedule.Key.Course != null && calculatedSchedule.Key.Classroom != null)
+				if (calculatedSchedule.Key.Course != null)
 				{
 					/*Teacher is assigned to too many courses*/
 					if (teacherAssignedCourses[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.Course)
@@ -70,25 +70,32 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 						fitness += calculatedSchedule.Value;
 
 						if (!courseAssignedTeachers.ContainsKey(calculatedSchedule.Key.Course))
-						{
 							courseAssignedTeachers.Add(calculatedSchedule.Key.Course, calculatedSchedule.Key.Teacher);
-							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
-						}
 
-						/*Course already assigned to a teacher*/
-						else if (courseAssignedTeachers[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
-							fitness += (double)EValidationCosts.GravePenalty;
+						/*Course already assigned to another teacher*/
+						if (courseAssignedTeachers[calculatedSchedule.Key.Course] != calculatedSchedule.Key.Teacher)
+							fitness += (double)EValidationCosts.UltimatePenalty;
 
 						else
+						{
 							coursesWorkload[calculatedSchedule.Key.Course] = calculatedSchedule.Key.TimePeriod.Duration;
 
-						/*Teacher is already assigned at this time*/
-						if (!teacherAssignedTimePeriods[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.TimePeriod))
-							fitness += (double)EValidationCosts.GravePenalty;
+							/*Teacher is already assigned at this time*/
+							if (!teacherAssignedTimePeriods[calculatedSchedule.Key.Teacher].Add(calculatedSchedule.Key.TimePeriod))
+								fitness += (double)EValidationCosts.MegaPenalty;
 
-						/*Classroom is already in use*/
-						if (!classroomAssignedTimePeriodss[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
-							fitness += (double)EValidationCosts.GravePenalty;
+							/*Classroom is already in use*/
+							if (calculatedSchedule.Key.Classroom != null && !classroomAssignedTimePeriodss[calculatedSchedule.Key.Classroom].Add(calculatedSchedule.Key.TimePeriod))
+							{
+								Classroom classroom = classroomAssignedTimePeriodss.Where(pair => pair.Key.ClassroomType.Equals(calculatedSchedule.Key.Classroom.ClassroomType) && !pair.Value.Contains(calculatedSchedule.Key.TimePeriod)).Select(pair => pair.Key).FirstOrDefault();
+
+								if (classroom != null)
+									calculatedSchedule.Key.UpdateClassroom(classroom);
+
+								else
+									fitness += (double)EValidationCosts.MegaPenalty;
+							}
+						}
 					}
 				}
 
@@ -99,19 +106,41 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			/*Penalty based on the course's workload*/
 			foreach (KeyValuePair<Course, TimeSpan> courseWorkload in coursesWorkload)
 			{
+				/*If course was not assigned at all*/
+				if (courseWorkload.Value.TotalMilliseconds == 0)
+					fitness += (double)EValidationCosts.UltimatePenalty;
+
 				/*If workload was not met*/
-				if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
-					fitness += (Double)EValidationCosts.MediumPenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 1);
+				else if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
+					fitness += (double)EValidationCosts.SmallPenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 15);
 
 				/*If way past required workload*/
 				else if (courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25 < courseWorkload.Value.TotalMilliseconds)
-					fitness += (Double)EValidationCosts.SmallPenalty * ((courseWorkload.Value.TotalMilliseconds - courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25) / 10);
+					fitness += (double)EValidationCosts.SmallPenalty * ((courseWorkload.Value.TotalMilliseconds - courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25) / 10);
 			}
+
+			int unassignedTeachersCount = teacherAssignedCourses.Where(pair => !pair.Value.Any()).Count();
+
+			for (int index = 0; index < unassignedTeachersCount; index++)
+				fitness += (double)EValidationCosts.MegaPenalty;
+
+			// int unassignedCoursesCount =
+
+			// for (int index = 0; index < unassignedTeachersCount; index++)
+			// 	fitness += (double)EValidationCosts.UltimatePenalty;
 
 			return fitness;
 		}
 
-		public IPositionType Clone() => new PositionType { _schedules = _schedules.Select(entry => entry.Clone()).ToArray() };
+		public IPositionType Clone() => new PositionType
+		{
+			_schedules = _schedules.Select(entry => entry.Clone()).ToArray(),
+			_teachers = _teachers,
+			_courses = _courses,
+			_timePeriods = _timePeriods,
+			_classrooms = _classrooms,
+			_teacherMaxAssignedCourses = _teacherMaxAssignedCourses
+		};
 
 		public IEnumerator<IPositionTypeEntry> GetEnumerator() => _schedules.GetEnumerator() as IEnumerator<IPositionTypeEntry>;
 

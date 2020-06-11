@@ -26,16 +26,16 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			double localRandomization = random.NextDouble();
 			double globalRandomization = random.NextDouble();
 
-			CourseVelocity = (int)Math.Round((weight * CourseVelocity)
-				+ (particleWeight * localRandomization * (((PositionTypeEntry)bestPosition).CourseId - ((PositionTypeEntry)position).CourseId))
-				+ (swarmWeight * globalRandomization * (((PositionTypeEntry)swarmBestPosition).CourseId - ((PositionTypeEntry)position).CourseId)));
+			CourseVelocity = (int)Math.Round((weight * CourseVelocity + 1)
+				+ (particleWeight * localRandomization * (((PositionTypeEntry)bestPosition).CourseIndex - ((PositionTypeEntry)position).CourseIndex))
+				+ (swarmWeight * globalRandomization * (((PositionTypeEntry)swarmBestPosition).CourseIndex - ((PositionTypeEntry)position).CourseIndex)));
 
-			ClassroomVelocity = (int)Math.Round((weight * ClassroomVelocity)
-				+ (particleWeight * localRandomization * (((PositionTypeEntry)bestPosition).ClassroomId - ((PositionTypeEntry)position).ClassroomId))
-				+ (swarmWeight * globalRandomization * (((PositionTypeEntry)swarmBestPosition).ClassroomId - ((PositionTypeEntry)position).ClassroomId)));
+			ClassroomVelocity = (int)Math.Round((weight * ClassroomVelocity + 1)
+				+ (particleWeight * localRandomization * (((PositionTypeEntry)bestPosition).ClassroomIndex - ((PositionTypeEntry)position).ClassroomIndex))
+				+ (swarmWeight * globalRandomization * (((PositionTypeEntry)swarmBestPosition).ClassroomIndex - ((PositionTypeEntry)position).ClassroomIndex)));
 		}
 
-		public int GetNewCouseId(int currentCourseId)
+		public int GetNewCourseIndex(int currentCourseId)
 		{
 			currentCourseId += CourseVelocity;
 
@@ -48,7 +48,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			return currentCourseId;
 		}
 
-		public int GetNewClassroomId(int currentClassroomId)
+		public int GetNewClassroomIndex(int currentClassroomId)
 		{
 			currentClassroomId += ClassroomVelocity;
 
