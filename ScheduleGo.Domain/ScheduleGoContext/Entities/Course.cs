@@ -20,5 +20,25 @@ namespace ScheduleGo.Domain.ScheduleGoContext.Entities
 		public virtual IEnumerable<CourseTimePeriod> AvailablePeriods { get; private set; }
 
 		public bool IsAvailable(TimePeriod timePeriod) => AvailablePeriods?.Where(availablePeriod => (TimePeriod)availablePeriod == timePeriod).Any() ?? false;
+
+		public Course[] Split(int ammount)
+		{
+			Course[] courses = new Course[ammount];
+
+			for (int index = 0; index < ammount; index++)
+				courses[index] = new Course
+				{
+					Name = $"{Name} - {index + 1}/{ammount}",
+					Description = Description,
+					StudentsCount = StudentsCount / ammount,
+					NeededClassroomTypeId = NeededClassroomTypeId,
+					WeeklyWorkload = WeeklyWorkload,
+					NeededClassroomType = NeededClassroomType,
+					CategoryTags = CategoryTags,
+					AvailablePeriods = AvailablePeriods
+				};
+
+			return courses;
+		}
 	}
 }

@@ -67,6 +67,9 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 				if (Course.StudentsCount > Classroom.Capacity)
 					value += (double)EValidationCosts.GravePenalty;
 
+				else if (Course.StudentsCount * 1.25 < Classroom.Capacity)
+					value += (double)EValidationCosts.MediumPenalty;
+
 				/*Classroom Must Be available at the required time*/
 				if (!Classroom.IsAvailable(TimePeriod))
 					value += (double)EValidationCosts.SmallPenalty;
@@ -112,6 +115,12 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			ClassroomIndex = (velocity as VelocityTypeEntry).GetNewClassroomIndex(ClassroomIndex);
 
 			_fetchCourseAndClassroom();
+		}
+
+		public void UpdateCourse(Course course)
+		{
+			Course = course;
+			CourseIndex = _courses.IndexOf(course) + 1;
 		}
 
 		public void UpdateClassroom(Classroom classroom)
