@@ -118,7 +118,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			{
 				/*If course was not assigned at all*/
 				if (courseWorkload.Value.TotalMilliseconds == 0)
-					fitness += (double)EValidationCosts.MegaPenalty * courseWorkload.Key.WeeklyWorkload.TotalMinutes;
+					fitness += (double)EValidationCosts.UltimatePenalty * courseWorkload.Key.WeeklyWorkload.TotalMinutes;
 
 				/*If workload was not met*/
 				else if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
@@ -162,14 +162,19 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			bool result = false;
 
-			if (CourseAssignedTeachers[course] == null)
-				if (TeacherAssignedCourses[teacher].Count < _teacherMaxAssignedCourses)
+			if (!_courseIsAssignedToAnotherTeacher(course, teacher))
+			{
+				if (TeacherAssignedCourses[teacher].Contains(course))
+					result = true;
+
+				else if (!_teacherAssignedTooManyCourses(teacher))
 				{
 					TeacherAssignedCourses[teacher].Add(course);
 					CourseAssignedTeachers[course] = teacher;
 
 					result = true;
 				}
+			}
 
 			return result;
 		}
@@ -196,8 +201,8 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			return result;
 		}
 
-		private bool _teacherAssignedTooManyCourses(Teacher teacher) => TeacherAssignedCourses[teacher].Count > _teacherMaxAssignedCourses;
-		private bool _courseIsAssignedToAnotherTeacher(Course course, Teacher teacher) => CourseAssignedTeachers[course] != teacher;
+		private bool _teacherAssignedTooManyCourses(Teacher teacher) => TeacherAssignedCourses[teacher].Count >= _teacherMaxAssignedCourses;
+		private bool _courseIsAssignedToAnotherTeacher(Course course, Teacher teacher) => CourseAssignedTeachers[course] != null && CourseAssignedTeachers[course] != teacher;
 		private void _increaseCourseWorkLoad(Course course, TimePeriod timePeriod) => CoursesWorkload[course] += timePeriod.Duration;
 	}
 }

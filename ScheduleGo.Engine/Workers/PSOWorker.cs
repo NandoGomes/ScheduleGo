@@ -69,16 +69,18 @@ namespace ScheduleGo.Engine.Workers
 				double[] velocityMinValues = new double[] { 0, 0 };
 				double[] velocityMaxValues = new double[] { courses.Count, classrooms.Count };
 
+				int maxCoursesPerTeacher = 4;
+
 				swarm.SetPositionArguments(teachers,
 							   courses,
 							   timePeriods,
 							   classrooms,
-							   4);
+							   maxCoursesPerTeacher);
 
 				swarm.SetVelocityArguments(velocityMinValues,
 							   velocityMaxValues);
 
-				swarm.Build(100,
+				swarm.Build(5,
 							teachers.Select(teacher => teacher.AvailablePeriods.Count()).Sum(),
 							1.49445);
 
@@ -91,8 +93,10 @@ namespace ScheduleGo.Engine.Workers
 				var resultWithUnqualifiedTeachers = result.Where(entry => !entry.Teacher.IsQualified(entry.Course)).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
 				var resultsWithoutClassrooms = result.Where(entry => entry.Classroom == null).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
 				var resultsWithInvalidClassrooms = result.Where(entry => entry.Classroom?.ClassroomTypeId != entry.Course?.NeededClassroomTypeId).Select(entry => new KeyValuePair<PositionTypeEntry, double>(entry, entry.ToDouble())).OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
-				var CoursesWithMultipleTeachers = result.GroupBy(entry => entry.Course).Where(group => group.Select(entry => entry.Teacher).Distinct().Count() > 1).ToDictionary(group => group.Key.Name, group => group.Select(entry => entry.Teacher.Name).Distinct().ToArray());
+				var coursesWithMultipleTeachers = result.GroupBy(entry => entry.Course).Where(group => group.Select(entry => entry.Teacher).Distinct().Count() > 1).ToDictionary(group => group.Key.Name, group => group.Select(entry => entry.Teacher.Name).Distinct().ToArray());
 				var coursesWithoutTeachers = courses.Except(result.Select(entry => entry.Course).Distinct()).OrderBy(course => course.Name).Select(course => course.Name).ToList();
+				var teachersWithMoreCoursesThanAllowed = result.GroupBy(entry => entry.Teacher).Select(group => new KeyValuePair<Teacher, List<Course>>(group.Key, group.Select(entry => entry.Course).Distinct().ToList())).Where(pair => pair.Value.Count > maxCoursesPerTeacher).ToDictionary(pair => pair.Key, pair => pair.Value);
+				var teachersWithoutCourses = teachers.Except(result.Select(entry => entry.Teacher).Distinct()).ToList();
 
 				var sundays = result.Where(entry => entry.WeekDay == EWeekDay.Sunday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var mondays = result.Where(entry => entry.WeekDay == EWeekDay.Monday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
@@ -102,7 +106,7 @@ namespace ScheduleGo.Engine.Workers
 				var fridays = result.Where(entry => entry.WeekDay == EWeekDay.Friday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 				var saturdays = result.Where(entry => entry.WeekDay == EWeekDay.Saturday).GroupBy(entry => entry.TimePeriod.Description).ToDictionary(entry => entry.Key, entry => entry.ToList());
 
-				var coursesPerTeacher = result.GroupBy(entry => entry.Teacher).ToDictionary(group => group.Key, group => group.Select(entry => entry.Course).Distinct().ToList());
+				var finalFitness = swarm.BestPosition.Position.CalculateFitness();
 
 				var teachersSchedules = result.GroupBy(entry => entry.Teacher.Name)
 								  .ToDictionary(entry => entry.Key,
@@ -112,8 +116,6 @@ namespace ScheduleGo.Engine.Workers
 															schedule => schedule.OrderBy(dailySchedule => dailySchedule.TimePeriod.Start)
 																.GroupBy(dailySchedule => dailySchedule.TimePeriod.Description)
 			   													.ToDictionary(dailySchedule => dailySchedule.Key, dailySchedule => dailySchedule.ToList())));
-
-				var finalFitness = swarm.BestPosition.Position.CalculateFitness();
 
 				SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
 
@@ -153,6 +155,19 @@ namespace ScheduleGo.Engine.Workers
 				worksheet.Cells[5, 3].Value = "Teacher";
 				worksheet.Cells[5, 4].Value = "Course";
 
+				// worksheet.Cells[1, 0].Value = "Morning 1";
+				// worksheet.Cells[2, 0].Value = "Morning 2";
+				// worksheet.Cells[3, 0].Value = "Afternoon 1";
+				// worksheet.Cells[4, 0].Value = "Afternoon 2";
+				// worksheet.Cells[5, 0].Value = "Night 1";
+				// worksheet.Cells[6, 0].Value = "Night 2";
+
+				// worksheet.Cells[8, 0].Value = "Course";
+				// worksheet.Cells[8, 1].Value = "Workload";
+
+				// worksheet.Cells[8, 3].Value = "Teacher";
+				// worksheet.Cells[8, 4].Value = "Course";
+
 				worksheet.Cells[0, 1].Style = headersStyle;
 				worksheet.Cells[0, 2].Style = headersStyle;
 				worksheet.Cells[0, 3].Style = headersStyle;
@@ -165,11 +180,21 @@ namespace ScheduleGo.Engine.Workers
 				worksheet.Cells[2, 0].Style = headersStyle;
 				worksheet.Cells[3, 0].Style = headersStyle;
 
+				// worksheet.Cells[4, 0].Style = headersStyle;
+				// worksheet.Cells[5, 0].Style = headersStyle;
+				// worksheet.Cells[6, 0].Style = headersStyle;
+
 				worksheet.Cells[5, 0].Style = headersStyle;
 				worksheet.Cells[5, 1].Style = headersStyle;
 
 				worksheet.Cells[5, 3].Style = headersStyle;
 				worksheet.Cells[5, 4].Style = headersStyle;
+
+				// worksheet.Cells[8, 0].Style = headersStyle;
+				// worksheet.Cells[8, 1].Style = headersStyle;
+
+				// worksheet.Cells[8, 3].Style = headersStyle;
+				// worksheet.Cells[8, 4].Style = headersStyle;
 
 				Dictionary<Course, TimeSpan> coursesWorkload = courses.OrderBy(course => course.Name).ToDictionary(course => course, course => new TimeSpan());
 
@@ -190,14 +215,32 @@ namespace ScheduleGo.Engine.Workers
 							else
 								row = 3;
 
+							// if (scheduleEntry.Key == "Morning 1")
+							// 	row = 1;
+
+							// else if (scheduleEntry.Key == "Morning 2")
+							// 	row = 2;
+
+							// else if (scheduleEntry.Key == "Afternoon 1")
+							// 	row = 3;
+
+							// else if (scheduleEntry.Key == "Afternoon 2")
+							// 	row = 4;
+
+							// else if (scheduleEntry.Key == "Night 1")
+							// 	row = 5;
+
+							// else
+							// 	row = 6;
+
 							worksheet.Cells[row, collumn].Style = scheduleEntryStyle;
 							worksheet.Cells[row, collumn].Value += $"{teacherSchedule.Key}: {scheduleEntry.Value.First().Course?.Name ?? "ERRO"} - {scheduleEntry.Value.First().Classroom?.Description ?? "ERRO"}\n";
-							coursesWorkload[scheduleEntry.Value.First().Course] += scheduleEntry.Value.First().TimePeriod.Duration;
 						}
 
+						// row = 9;
 						row = 6;
 
-						foreach (KeyValuePair<Course, TimeSpan> courseWorkload in coursesWorkload)
+						foreach (KeyValuePair<Course, TimeSpan> courseWorkload in swarm.BestPosition.Position.CoursesWorkload)
 						{
 							CellStyle courseWorkloadStyle = new CellStyle();
 
@@ -227,8 +270,9 @@ namespace ScheduleGo.Engine.Workers
 						}
 
 						row = 6;
+						// row = 9;
 
-						foreach (KeyValuePair<Teacher, List<Course>> teacherCourses in coursesPerTeacher)
+						foreach (KeyValuePair<Teacher, HashSet<Course>> teacherCourses in swarm.BestPosition.Position.TeacherAssignedCourses)
 						{
 							worksheet.Cells[row, 3].Value = teacherCourses.Key.Name;
 
