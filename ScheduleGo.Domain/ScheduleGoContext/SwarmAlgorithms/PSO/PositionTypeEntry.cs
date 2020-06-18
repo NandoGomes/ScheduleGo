@@ -48,8 +48,8 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			if (Course != null)
 			{
 				/*Teacher Must Be qualified for this course*/
-				if (!Teacher.IsQualified(Course))
-					value += (double)EValidationCosts.UltimatePenalty;
+				// if (!Teacher.IsQualified(Course))
+				// 	value += (double)EValidationCosts.UltimatePenalty;
 
 				/*Teacher prefers this course*/
 				if (!Teacher.Prefers(Course))
@@ -133,6 +133,20 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			Course = _courses.ElementAtOrDefault(CourseIndex - 1);
 			Classroom = _classrooms.ElementAtOrDefault(ClassroomIndex - 1);
+
+			if (Course != null && !Teacher.IsQualified(Course))
+			{
+				KeyValuePair<Course, int> qualifiedCourse = _courses.Where(course => Teacher.IsQualified(course)).Select((course, courseIndex) => new KeyValuePair<Course, int>(course, courseIndex)).OrderBy((qualifiedCourse) => Math.Abs(CourseIndex - qualifiedCourse.Value)).FirstOrDefault();
+
+				if (qualifiedCourse.Key != null)
+				{
+					Course = qualifiedCourse.Key;
+					CourseIndex = qualifiedCourse.Value + 1;
+				}
+
+				else
+					Reset();
+			}
 
 			if (Classroom == null)
 				Course = null;
