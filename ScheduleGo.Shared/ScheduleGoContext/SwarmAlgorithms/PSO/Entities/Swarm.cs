@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -6,7 +7,7 @@ using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.ValueObjects;
 
 namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 {
-	public class Swarm<TPositionType, TVelocityType> : IList<Particle<TPositionType, TVelocityType>> where TPositionType : class, IPositionType, new() where TVelocityType : class, IVelocityType, new()
+	public class Swarm<TPositionType, TVelocityType> : ISwarm, IList<Particle<TPositionType, TVelocityType>> where TPositionType : class, IPositionType, new() where TVelocityType : class, IVelocityType, new()
 	{
 		private List<Particle<TPositionType, TVelocityType>> _particles;
 		private double[] _optimalFitnessRange = new double[] { double.MinValue, double.MinValue };
@@ -27,6 +28,8 @@ namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 		public double Weight { get; private set; }
 		public double GlobalWeight { get; private set; }
 		public int Iterations { get; private set; }
+		public DateTime ProcessStart { get; private set; }
+		public TimeSpan ProcessingDuration { get; private set; }
 		public object[] PositionArguments { get; private set; }
 		public object[] VelocityArguments { get; private set; }
 
@@ -72,6 +75,8 @@ namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 
 		public Swarm<TPositionType, TVelocityType> Process()
 		{
+			ProcessStart = DateTime.UtcNow;
+
 			int iterationCounter = 0;
 
 			for (iterationCounter = 0; iterationCounter < Lifetime && !OptimalFitnessFound; iterationCounter++)
@@ -79,6 +84,8 @@ namespace ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Entities
 					_particles[index].Run(this);
 
 			Iterations = iterationCounter;
+
+			ProcessingDuration = DateTime.UtcNow.Subtract(ProcessStart);
 
 			return this;
 		}

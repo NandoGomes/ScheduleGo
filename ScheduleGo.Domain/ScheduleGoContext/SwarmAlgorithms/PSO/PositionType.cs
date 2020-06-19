@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using ScheduleGo.Domain.ScheduleGoContext.Entities;
-using ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO.Enums;
+using ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO.Validations;
 using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts;
 
 namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
@@ -18,6 +18,24 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		private List<Classroom> _classrooms;
 
 		private int _teacherMaxAssignedCourses;
+
+		public PositionType() { }
+		private PositionType(PositionType positionType)
+		{
+			positionType.CalculateFitness();
+
+			CoursesWorkload = positionType.CoursesWorkload;
+			CourseAssignedTeachers = positionType.CourseAssignedTeachers;
+			TeacherAssignedCourses = positionType.TeacherAssignedCourses;
+			ClassroomAssignedTimePeriods = positionType.ClassroomAssignedTimePeriods;
+
+			_schedules = positionType._schedules.Select(entry => entry.Clone()).ToArray();
+			_teachers = positionType._teachers;
+			_courses = positionType._courses;
+			_timePeriods = positionType._timePeriods;
+			_classrooms = positionType._classrooms;
+			_teacherMaxAssignedCourses = positionType._teacherMaxAssignedCourses;
+		}
 
 		public Dictionary<Course, TimeSpan> CoursesWorkload { get; private set; }
 		public Dictionary<Course, Teacher> CourseAssignedTeachers { get; private set; }
@@ -80,7 +98,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 						_increaseCourseWorkLoad(course, timePeriod);
 
 						if (!_assignClassroom(schedule))
-							fitness += (double)EValidationCosts.MegaPenalty;
+							fitness += (double)ValidationCosts.UltimatePenalty;
 					}
 
 					else
@@ -118,39 +136,22 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 			{
 				/*If course was not assigned at all*/
 				if (courseWorkload.Value.TotalMilliseconds == 0)
-					fitness += (double)EValidationCosts.UltimatePenalty * courseWorkload.Key.WeeklyWorkload.TotalMinutes;
+					fitness += (double)ValidationCosts.UltimatePenalty * courseWorkload.Key.WeeklyWorkload.TotalMinutes;
 
 				/*If workload was not met*/
 				else if (courseWorkload.Key.WeeklyWorkload > courseWorkload.Value)
-					fitness += (double)EValidationCosts.SmallPenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 15);
-
-				/*If way past required workload*/
-				else if (courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25 < courseWorkload.Value.TotalMilliseconds)
-					fitness += (double)EValidationCosts.SmallPenalty * ((courseWorkload.Value.TotalMilliseconds - courseWorkload.Key.WeeklyWorkload.TotalMilliseconds * 1.25) / 10);
+					fitness += (double)ValidationCosts.SmallPenalty * ((courseWorkload.Key.WeeklyWorkload.TotalMinutes - courseWorkload.Value.TotalMinutes) / 15);
 			}
 
 			int unassignedTeachersCount = TeacherAssignedCourses.Where(pair => !pair.Value.Any()).Count();
 
 			for (int index = 0; index < unassignedTeachersCount; index++)
-				fitness += (double)EValidationCosts.MegaPenalty;
-
-			// int unassignedCoursesCount =
-
-			// for (int index = 0; index < unassignedTeachersCount; index++)
-			// 	fitness += (double)EValidationCosts.UltimatePenalty;
+				fitness += (double)ValidationCosts.MegaPenalty;
 
 			return fitness;
 		}
 
-		public IPositionType Clone() => new PositionType
-		{
-			_schedules = _schedules.Select(entry => entry.Clone()).ToArray(),
-			_teachers = _teachers,
-			_courses = _courses,
-			_timePeriods = _timePeriods,
-			_classrooms = _classrooms,
-			_teacherMaxAssignedCourses = _teacherMaxAssignedCourses
-		};
+		public IPositionType Clone() => new PositionType(this);
 
 		public IEnumerator<IPositionTypeEntry> GetEnumerator() => _schedules.GetEnumerator() as IEnumerator<IPositionTypeEntry>;
 
@@ -162,7 +163,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 		{
 			bool result = false;
 
-			if (!_courseIsAssignedToAnotherTeacher(course, teacher))
+			if (!_courseIsAssignedToAnotherTeacher(course, teacher) && !_courseWorkloadAlreadyReached(course))
 			{
 				if (TeacherAssignedCourses[teacher].Contains(course))
 					result = true;
@@ -185,9 +186,9 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 			if (schedule.Classroom == null || !ClassroomAssignedTimePeriods[schedule.Classroom].Add(schedule.TimePeriod))
 			{
-				Classroom classroom = ClassroomAssignedTimePeriods.Where(pair => pair.Key.ClassroomType.Equals(schedule.Course.NeededClassroomType)
-																	 && !pair.Value.Contains(schedule.TimePeriod)
+				Classroom classroom = ClassroomAssignedTimePeriods.Where(pair => !pair.Value.Contains(schedule.TimePeriod)
 																	 && pair.Key.Capacity >= schedule.Course.StudentsCount)
+					.OrderByDescending(pair => pair.Key.ClassroomType.Equals(schedule.Course.NeededClassroomType))
 					.Select(pair => pair.Key)
 					.FirstOrDefault();
 
@@ -203,6 +204,7 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 		private bool _teacherAssignedTooManyCourses(Teacher teacher) => TeacherAssignedCourses[teacher].Count >= _teacherMaxAssignedCourses;
 		private bool _courseIsAssignedToAnotherTeacher(Course course, Teacher teacher) => CourseAssignedTeachers[course] != null && CourseAssignedTeachers[course] != teacher;
+		private bool _courseWorkloadAlreadyReached(Course course) => CoursesWorkload[course] >= course.WeeklyWorkload;
 		private void _increaseCourseWorkLoad(Course course, TimePeriod timePeriod) => CoursesWorkload[course] += timePeriod.Duration;
 	}
 }

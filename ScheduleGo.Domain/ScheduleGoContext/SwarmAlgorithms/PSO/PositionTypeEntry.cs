@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using ScheduleGo.Domain.ScheduleGoContext.Entities;
 using ScheduleGo.Domain.ScheduleGoContext.Enums;
-using ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO.Enums;
+using ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO.Validations;
 using ScheduleGo.Shared.ScheduleGoContext.SwarmAlgorithms.PSO.Contracts;
 
 namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
@@ -53,30 +53,30 @@ namespace ScheduleGo.Domain.ScheduleGoContext.SwarmAlgorithms.PSO
 
 				/*Teacher prefers this course*/
 				if (!Teacher.Prefers(Course))
-					value += (double)EValidationCosts.SmallPenalty;
+					value += (double)ValidationCosts.SmallPenalty;
 
 				/*Teacher prefers this time*/
 				if (!Teacher.Prefers(TimePeriod))
-					value += (double)EValidationCosts.SmallPenalty;
+					value += (double)ValidationCosts.SmallPenalty;
 
 				/*Course Must Be availble at this time*/
 				if (!Course.IsAvailable(TimePeriod))
-					value += (double)EValidationCosts.MediumPenalty;
+					value += (double)ValidationCosts.MediumPenalty;
 
 				/*Classroom must be large enought for all students*/
 				if (Course.StudentsCount > Classroom.Capacity)
-					value += (double)EValidationCosts.GravePenalty;
+					value += (double)ValidationCosts.GravePenalty;
 
 				else if (Course.StudentsCount * 1.25 < Classroom.Capacity)
-					value += (double)EValidationCosts.MediumPenalty;
+					value += (double)ValidationCosts.MediumPenalty;
 
 				/*Classroom Must Be available at the required time*/
 				if (!Classroom.IsAvailable(TimePeriod))
-					value += (double)EValidationCosts.SmallPenalty;
+					value += (double)ValidationCosts.SmallPenalty;
 			}
 
 			else
-				value += (double)EValidationCosts.MediumPenalty;
+				value += (double)ValidationCosts.MediumPenalty;
 
 			return value;
 		}
